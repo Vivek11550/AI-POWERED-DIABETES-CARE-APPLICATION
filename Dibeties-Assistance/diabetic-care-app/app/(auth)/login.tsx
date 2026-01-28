@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import API from "../../src/services/api";
 import { AUTH } from "../../src/services/endpoints";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,7 +22,26 @@ export default function Login() {
       alert("Login successful");
       console.log("LOGIN RESPONSE:", res.data);
 
-      // NEXT STAGE (we'll add this):
+      // NEXT STAGE 2 : (done)
+      await AsyncStorage.setItem("token", res.data.token);
+      await AsyncStorage.setItem("role", res.data.role);
+
+
+if (!res.data.profileCompleted) {
+  if (res.data.role === "patient") {
+    router.replace("/profile/patient" as any);
+  } else {
+    router.replace("/profile/doctor" as any);
+  }
+  
+}
+else{
+    if (res.data.role === "patient") {
+    router.replace("/dashboard/patient" as any);
+  } else {
+    router.replace("/dashboard/doctor" as any);
+  }
+  }
       // save token → redirect based on role
     } catch (error: any) {
       const message =

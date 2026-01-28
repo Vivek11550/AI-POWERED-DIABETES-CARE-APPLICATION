@@ -2,6 +2,11 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import assessmentRoutes from "./routes/assessmentRoutes.js";
+import doctorRoutes from "./routes/doctorRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,6 +16,11 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/assessment", assessmentRoutes);
+app.use("/api/doctor", doctorRoutes);
+app.use("/api/chat", chatRoutes);
+
 
 mongoose
   .connect(process.env.MONGO_URI)
