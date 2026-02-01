@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import API from "../../src/services/api";
 import { AUTH } from "../../src/services/endpoints";
+import { i18n } from "@/src/i18n/i18n";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -29,14 +30,14 @@ export default function Register() {
 
   return (
     <View style={{ padding: 20 }}>
-      <Text>Email</Text>
+      <Text>{i18n.t("email")}</Text>
       <TextInput
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
       />
 
-      <Text>Password</Text>
+      <Text>{i18n.t("password")}</Text>
       <TextInput
         value={password}
         secureTextEntry

@@ -1,12 +1,21 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Button } from "react-native";
 import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+// import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
+import { i18n } from "../../src/i18n/i18n";
+import { usePathname, useRouter } from "expo-router";
+import { setLanguage } from "@/src/i18n/i18n";
 
 export default function PatientDashboard() {
   const router = useRouter();
   const [chatId, setChatId] = useState<string | null>(null);
+const pathname = usePathname();
+
+  const changeLang = async (lang: "en" | "mr") => {
+    await setLanguage(lang);
+    router.replace(pathname as any); // force re-render
+  };
 
   useEffect(() => {
     loadPatientChat();
@@ -38,8 +47,11 @@ export default function PatientDashboard() {
           marginBottom: 20,
         }}
       >
-        Patient Dashboard
+       {i18n.t("patientDashboard")}
       </Text>
+       
+      <Button title="English" onPress={() => changeLang("en")} />
+            <Button title="मराठी" onPress={() => changeLang("mr")} />
 
       {/* Health Assessment Card */}
       <TouchableOpacity
@@ -52,15 +64,16 @@ export default function PatientDashboard() {
         }}
       >
         <Text style={{ color: "white", fontSize: 18 }}>
-          Health Assessment
+          {i18n.t("dashboard.assessmentTitle")}
         </Text>
         <Text style={{ color: "white", marginTop: 5 }}>
-          Enter sugar levels & analyze risk
+          {i18n.t("dashboard.assessmentSub")}
         </Text>
       </TouchableOpacity>
-
+     
       {/* Diet Recommendation Card */}
       <TouchableOpacity
+      onPress={() => router.push("/diet" as any)}
         style={{
           backgroundColor: "#16a34a",
           padding: 20,
@@ -69,15 +82,16 @@ export default function PatientDashboard() {
         }}
       >
         <Text style={{ color: "white", fontSize: 18 }}>
-          Diet Plan
+          {i18n.t("dashboard.dietTitle")}
         </Text>
         <Text style={{ color: "white", marginTop: 5 }}>
-          View personalized diet suggestions
+          {i18n.t("dashboard.dietSub")}
         </Text>
       </TouchableOpacity>
 
       {/* Exercise Recommendation Card */}
       <TouchableOpacity
+      onPress={() => router.push("/exercise" as any)}
         style={{
           backgroundColor: "#f59e0b",
           padding: 20,
@@ -86,10 +100,10 @@ export default function PatientDashboard() {
         }}
       >
         <Text style={{ color: "white", fontSize: 18 }}>
-          Exercise Plan
+          {i18n.t("dashboard.exerciseTitle")}
         </Text>
         <Text style={{ color: "white", marginTop: 5 }}>
-          View exercises with animations
+         {i18n.t("dashboard.exerciseSub")}
         </Text>
       </TouchableOpacity>
 
@@ -107,10 +121,10 @@ export default function PatientDashboard() {
           }}
         >
           <Text style={{ color: "white", fontSize: 18 }}>
-            💬 Chat with Doctor
+            💬 {i18n.t("dashboard.chatTitle")}
           </Text>
           <Text style={{ color: "white", marginTop: 5 }}>
-            View doctor’s advice & reply
+            {i18n.t("dashboard.chatSub")}
           </Text>
         </TouchableOpacity>
       )}

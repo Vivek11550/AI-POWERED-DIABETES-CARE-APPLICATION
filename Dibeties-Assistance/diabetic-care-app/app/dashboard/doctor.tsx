@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
+import { i18n } from "@/src/i18n/i18n";
 
 type Summary = {
   level1: number;
@@ -50,59 +51,60 @@ export default function DoctorDashboard() {
   return (
     <ScrollView style={styles.container}>
       {/* HEADER */}
-      <Text style={styles.header}>Doctor Dashboard</Text>
+      <Text style={styles.header}>{i18n.t("doctor.dashboardTitle")}</Text>
 
       {/* SUMMARY CARDS */}
       <View style={styles.summaryRow}>
         <View style={[styles.card, { backgroundColor: "#dcfce7" }]}>
-          <Text style={styles.cardTitle}>Level 1</Text>
+          <Text style={styles.cardTitle}>{i18n.t("doctor.level1")}</Text>
           <Text style={styles.cardValue}>{summary.level1}</Text>
         </View>
 
         <View style={[styles.card, { backgroundColor: "#fef3c7" }]}>
-          <Text style={styles.cardTitle}>Level 2</Text>
+          <Text style={styles.cardTitle}>{i18n.t("doctor.level2")}</Text>
           <Text style={styles.cardValue}>{summary.level2}</Text>
         </View>
 
         <View style={[styles.card, { backgroundColor: "#fee2e2" }]}>
-          <Text style={styles.cardTitle}>Level 3</Text>
+          <Text style={styles.cardTitle}>{i18n.t("doctor.level3")}</Text>
           <Text style={styles.cardValue}>{summary.level3}</Text>
         </View>
       </View>
 
       {/* HIGH RISK PATIENTS */}
-      <Text style={styles.sectionTitle}>🔴 High Risk Patients</Text>
+      <Text style={styles.sectionTitle}>
+        🔴 {i18n.t("doctor.highRiskTitle")}
+      </Text>
 
       {highRisk.length === 0 && (
-        <Text style={styles.emptyText}>
-          No high-risk patients currently.
-        </Text>
+        <Text style={styles.emptyText}>{i18n.t("doctor.noHighRisk")}</Text>
       )}
 
       {highRisk.map((item: any) => (
         <View key={item._id} style={styles.patientCard}>
           <Text style={styles.patientName}>
-            Patient: {item.userId?.email ?? "Unknown"}
+            {/* Using interpolation for "Patient: email" */}
+            {i18n.t("doctor.patientLabel", {
+              email: item.userId?.email ?? i18n.t("doctor.unknown"),
+            })}
           </Text>
 
-          <Text>Risk Level: {item.riskLevel}</Text>
+          <Text>
+            {i18n.t("doctor.riskLevelLabel", { level: item.riskLevel })}
+          </Text>
 
-          {item.footUlcer && (
-            <Text style={styles.warningText}>
-              ⚠️ Foot Ulcer Detected
-            </Text>
-          )}
+          <Text style={styles.warningText}>
+            ⚠️ {i18n.t("doctor.footUlcerWarning")}
+          </Text>
 
           <TouchableOpacity
             onPress={() =>
-              router.push(
-                `/chat?patientId=${item.userId?._id}` as any
-              )
+              router.push(`/chat?patientId=${item.userId?._id}` as any)
             }
             style={styles.chatButton}
           >
             <Text style={styles.chatButtonText}>
-              Chat with Patient
+              {i18n.t("doctor.chatWithPatient")}
             </Text>
           </TouchableOpacity>
         </View>

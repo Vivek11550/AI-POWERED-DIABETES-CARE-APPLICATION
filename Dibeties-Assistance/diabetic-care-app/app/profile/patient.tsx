@@ -2,7 +2,8 @@ import { View, Text, TextInput, Button } from "react-native";
 import { useState } from "react";
 import API from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
+import { setLanguage } from "@/src/i18n/i18n";
 
 export default function PatientProfile() {
   const [fullName, setFullName] = useState("");
@@ -11,6 +12,12 @@ export default function PatientProfile() {
   const [weight, setWeight] = useState("");
 
   const router = useRouter();
+  const pathname = usePathname();
+
+  const changeLang = async (lang: "en" | "mr") => {
+    await setLanguage(lang);
+    router.replace(pathname as any); // force re-render
+  };
 
   const submitProfile = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -26,7 +33,7 @@ export default function PatientProfile() {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       alert("Profile saved");
@@ -40,10 +47,25 @@ export default function PatientProfile() {
     <View style={{ padding: 20 }}>
       <Text>Patient Profile</Text>
 
+      <Button title="English" onPress={() => changeLang("en")} />
+      <Button title="मराठी" onPress={() => changeLang("mr")} />
+
       <TextInput placeholder="Full Name" onChangeText={setFullName} />
-      <TextInput placeholder="Age" keyboardType="numeric" onChangeText={setAge} />
-      <TextInput placeholder="Height (cm)" keyboardType="numeric" onChangeText={setHeight} />
-      <TextInput placeholder="Weight (kg)" keyboardType="numeric" onChangeText={setWeight} />
+      <TextInput
+        placeholder="Age"
+        keyboardType="numeric"
+        onChangeText={setAge}
+      />
+      <TextInput
+        placeholder="Height (cm)"
+        keyboardType="numeric"
+        onChangeText={setHeight}
+      />
+      <TextInput
+        placeholder="Weight (kg)"
+        keyboardType="numeric"
+        onChangeText={setWeight}
+      />
 
       <Button title="Save Profile" onPress={submitProfile} />
     </View>
