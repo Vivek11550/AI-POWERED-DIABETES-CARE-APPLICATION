@@ -24,6 +24,7 @@ export default {
     passwordPlaceholder: "Enter your password",
     loginButton: "Login",
     goToRegister: "Go to Register",
+    welcomeBack:"welcomeBack",
   },
 
   //dashboard doctor

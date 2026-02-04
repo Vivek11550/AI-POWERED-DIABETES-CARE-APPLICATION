@@ -24,6 +24,7 @@ export default {
     passwordPlaceholder: "तुमचा पासवर्ड प्रविष्ट करा",
     loginButton: "लॉगिन करा",
     goToRegister: "नोंदणी पृष्ठावर जा",
+    welcomeBack:"पुन्हा स्वागत आहे!"
   },
 
   // dashboard-doctor
