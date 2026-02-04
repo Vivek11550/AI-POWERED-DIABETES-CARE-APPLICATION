@@ -1,73 +1,190 @@
-import { View, Text, TextInput, Button } from "react-native";
-import { useState } from "react";
-import API from "../../src/services/api";
+import {
+  ScrollView,
+  View,
+  TextInput,
+  StyleSheet,
+} from "react-native";
+import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { usePathname, useRouter } from "expo-router";
-import { setLanguage } from "@/src/i18n/i18n";
+import API from "../../src/services/api";
+
+import ProfileAvatar from "../../components/profile/ProfileAvatar";
+import ProfileTitle from "../../components/profile/ProfileTitle";
+import InfoSection from "../../components/profile/InfoSection";
+import InfoRow from "../../components/profile/InfoRow";
+import EditProfileButton from "../../components/profile/EditProfileButton";
 
 export default function PatientProfile() {
-  const [fullName, setFullName] = useState("");
-  const [age, setAge] = useState("");
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
+  const [profile, setProfile] = useState<any>({});
+  const [edit, setEdit] = useState(false);
 
-  const router = useRouter();
-  const pathname = usePathname();
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
-  const changeLang = async (lang: "en" | "mr") => {
-    await setLanguage(lang);
-    router.replace(pathname as any); // force re-render
+  const loadProfile = async () => {
+    const token = await AsyncStorage.getItem("token");
+    const res = await API.get("/profile/patient/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setProfile(res.data);
   };
 
-  const submitProfile = async () => {
+  const saveProfile = async () => {
     const token = await AsyncStorage.getItem("token");
-
-    try {
-      await API.post(
-        "/profile/patient",
-        {
-          fullName,
-          age,
-          heightCm: height,
-          baselineWeightKg: weight,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      alert("Profile saved");
-      router.replace("/dashboard/patient" as any);
-    } catch (err: any) {
-      alert("Error saving profile");
-    }
+    await API.put("/profile/patient", profile, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setEdit(false);
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Patient Profile</Text>
-
-      <Button title="English" onPress={() => changeLang("en")} />
-      <Button title="मराठी" onPress={() => changeLang("mr")} />
-
-      <TextInput placeholder="Full Name" onChangeText={setFullName} />
-      <TextInput
-        placeholder="Age"
-        keyboardType="numeric"
-        onChangeText={setAge}
-      />
-      <TextInput
-        placeholder="Height (cm)"
-        keyboardType="numeric"
-        onChangeText={setHeight}
-      />
-      <TextInput
-        placeholder="Weight (kg)"
-        keyboardType="numeric"
-        onChangeText={setWeight}
+    <ScrollView style={styles.container}>
+      {/* ================= HEADER ================= */}
+      <ProfileAvatar />
+      <ProfileTitle
+        name={profile.fullName || "Patient"}
+        subtitle="Patient"
       />
 
-      <Button title="Save Profile" onPress={submitProfile} />
-    </View>
+      {/* ================= PERSONAL INFO ================= */}
+      <InfoSection title="Personal Information">
+        {edit ? (
+          <>
+            <EditableField
+              placeholder="Full Name"
+              value={profile.fullName || ""}
+              onChange={(v: any) =>
+                setProfile({ ...profile, fullName: v })
+              }
+            />
+            <EditableField
+              placeholder="Age"
+              value={
+                profile.age ? String(profile.age) : ""
+              }
+              onChange={(v: any) =>
+                setProfile({ ...profile, age: v })
+              }
+              keyboardType="numeric"
+            />
+          </>
+        ) : (
+          <>
+            <InfoRow
+              label="Full Name"
+              value={profile.fullName || "-"}
+            />
+            <InfoRow
+              label="Age"
+              value={
+                profile.age ? String(profile.age) : "-"
+              }
+            />
+          </>
+        )}
+      </InfoSection>
+
+      {/* ================= HEALTH INFO ================= */}
+      <InfoSection title="Health Information">
+        {edit ? (
+          <>
+            <EditableField
+              placeholder="Height (cm)"
+              value={
+                profile.heightCm
+                  ? String(profile.heightCm)
+                  : ""
+              }
+              onChange={(v: any) =>
+                setProfile({
+                  ...profile,
+                  heightCm: v,
+                })
+              }
+              keyboardType="numeric"
+            />
+            <EditableField
+              placeholder="Weight (kg)"
+              value={
+                profile.baselineWeightKg
+                  ? String(profile.baselineWeightKg)
+                  : ""
+              }
+              onChange={(v: any) =>
+                setProfile({
+                  ...profile,
+                  baselineWeightKg: v,
+                })
+              }
+              keyboardType="numeric"
+            />
+          </>
+        ) : (
+          <>
+            <InfoRow
+              label="Height"
+              value={
+                profile.heightCm
+                  ? `${profile.heightCm} cm`
+                  : "-"
+              }
+            />
+            <InfoRow
+              label="Weight"
+              value={
+                profile.baselineWeightKg
+                  ? `${profile.baselineWeightKg} kg`
+                  : "-"
+              }
+            />
+          </>
+        )}
+      </InfoSection>
+
+      {/* ================= ACTION ================= */}
+      <EditProfileButton
+        title={edit ? "Save Profile" : "Edit Profile"}
+        onPress={edit ? saveProfile : () => setEdit(true)}
+      />
+    </ScrollView>
   );
 }
+
+/* ================= EDITABLE INPUT ================= */
+
+function EditableField({
+  value,
+  onChange,
+  placeholder,
+  keyboardType = "default",
+}: any) {
+  return (
+    <TextInput
+      value={value}
+      placeholder={placeholder}
+      keyboardType={keyboardType}
+      onChangeText={onChange}
+      style={styles.input}
+    />
+  );
+}
+
+/* ================= STYLES ================= */
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f9fafb",
+    padding: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    backgroundColor: "#ffffff",
+  },
+});

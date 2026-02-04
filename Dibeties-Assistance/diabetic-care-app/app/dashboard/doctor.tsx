@@ -71,6 +71,16 @@ export default function DoctorDashboard() {
         </View>
       </View>
 
+      <TouchableOpacity onPress={() => router.push("/profile/doctor" as any)}
+        style={{
+          backgroundColor: "#2563eb",
+          padding: 20,
+          borderRadius: 12,
+          marginBottom: 15,
+        }}>
+         <Text>go To profile</Text>
+      </TouchableOpacity>
+
       {/* HIGH RISK PATIENTS */}
       <Text style={styles.sectionTitle}>
         🔴 {i18n.t("doctor.highRiskTitle")}
@@ -119,11 +129,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+
   },
   header: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+    marginTop:28
   },
   summaryRow: {
     flexDirection: "row",

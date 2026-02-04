@@ -5,7 +5,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
 import { i18n } from "../../src/i18n/i18n";
 import {  useRouter } from "expo-router";
-import { setLanguage } from "@/src/i18n/i18n";
 
 export default function PatientDashboard() {
   const router = useRouter();
@@ -46,6 +45,16 @@ export default function PatientDashboard() {
       </Text>
        
       
+      <TouchableOpacity onPress={() => router.push("/profile/patient" as any)}
+        style={{
+          backgroundColor: "#2563eb",
+          padding: 20,
+          borderRadius: 12,
+          marginBottom: 15,
+        }}>
+         <Text>go To profile</Text>
+      </TouchableOpacity>
+
 
       {/* Health Assessment Card */}
       <TouchableOpacity

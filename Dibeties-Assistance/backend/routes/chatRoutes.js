@@ -5,15 +5,14 @@ import {
   sendMessage,
 } from "../controllers/chatController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import Chat from "../models/Chat.js"; // ✅ FIX (MISSING IMPORT)
+import Chat from "../models/Chat.js"; 
 
 const router = express.Router();
 
 router.post("/start", protect, startChat);
-
 router.get("/:chatId/messages", protect, getMessages);
-
 router.post("/:chatId/message", protect, sendMessage);
+
 
 // ✅ Patient fetches existing chat
 router.get("/patient", protect, async (req, res) => {
