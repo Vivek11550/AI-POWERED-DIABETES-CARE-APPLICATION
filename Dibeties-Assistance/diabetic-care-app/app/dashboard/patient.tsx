@@ -1,21 +1,16 @@
 import { View, Text, TouchableOpacity, Button } from "react-native";
 import { useEffect, useState } from "react";
-// import { useRouter } from "expo-router";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
 import { i18n } from "../../src/i18n/i18n";
-import { usePathname, useRouter } from "expo-router";
+import {  useRouter } from "expo-router";
 import { setLanguage } from "@/src/i18n/i18n";
 
 export default function PatientDashboard() {
   const router = useRouter();
   const [chatId, setChatId] = useState<string | null>(null);
-const pathname = usePathname();
 
-  const changeLang = async (lang: "en" | "mr") => {
-    await setLanguage(lang);
-    router.replace(pathname as any); // force re-render
-  };
 
   useEffect(() => {
     loadPatientChat();
@@ -39,7 +34,7 @@ const pathname = usePathname();
   };
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+    <View style={{ flex: 1, padding: 20, marginTop:28 }}>
       <Text
         style={{
           fontSize: 24,
@@ -50,8 +45,7 @@ const pathname = usePathname();
        {i18n.t("patientDashboard")}
       </Text>
        
-      <Button title="English" onPress={() => changeLang("en")} />
-            <Button title="मराठी" onPress={() => changeLang("mr")} />
+      
 
       {/* Health Assessment Card */}
       <TouchableOpacity

@@ -52,7 +52,7 @@ export default function Assessment() {
   };
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={{ padding: 20,marginTop:20 }}>
       <Text style={{ fontSize: 22, fontWeight: "bold" }}>
         Health Assessment
       </Text>
