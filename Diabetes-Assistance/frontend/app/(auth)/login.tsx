@@ -33,6 +33,7 @@ export default function Login() {
         email,
         password,
       });
+      console.log("res",res)
 
       alert("Login successful");
 
@@ -74,7 +75,7 @@ export default function Login() {
           </Text>
 
           <Image
-            source={require("../../assets/images/DiebetiseCare.png")}
+            source={require("../../assets/images/bvdu-logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
