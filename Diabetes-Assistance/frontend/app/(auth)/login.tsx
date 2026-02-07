@@ -79,6 +79,9 @@ export default function Login() {
             style={styles.logo}
             resizeMode="contain"
           />
+          <Text style={styles.title}>
+            Effectiveness of AI based Nurse led Program on Patients with Diabetes mellitus management
+          </Text>
 
           <Text style={styles.label}>
             {t("auth.emailLabel")}
@@ -155,11 +158,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 16,
   },
+  title:{textAlign: "center",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 24,},
 
   logo: {
     height: 90,
     width: "100%",
-    marginBottom: 24,
+    marginBottom: 12,
   },
 
   label: {

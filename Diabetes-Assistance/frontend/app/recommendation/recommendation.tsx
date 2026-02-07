@@ -1,36 +1,10 @@
-import { View, Text, TouchableOpacity, Button } from "react-native";
-import { useEffect, useState } from "react";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import API from "../../src/services/api";
+import { View, Text, TouchableOpacity } from "react-native";
 import { i18n } from "../../src/i18n/i18n";
 import {  useRouter } from "expo-router";
 
-export default function PatientDashboard() {
+export default function RecommendationDashboard() {
   const router = useRouter();
-  const [chatId, setChatId] = useState<string | null>(null);
-
-
-  useEffect(() => {
-    loadPatientChat();
-  }, []);
-
-  const loadPatientChat = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      const res = await API.get("/chat/patient", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setChatId(res.data._id);
-    } catch {
-      // No chat yet → do nothing
-      setChatId(null);
-    }
-  };
+  
 
   return (
     <View style={{ flex: 1, padding: 20, marginTop:28 }}>
@@ -41,7 +15,7 @@ export default function PatientDashboard() {
           marginBottom: 20,
         }}
       >
-       {i18n.t("patientDashboard")}
+       Recommendation Dashboard
       </Text>
        
       
@@ -110,40 +84,22 @@ export default function PatientDashboard() {
         </Text>
       </TouchableOpacity>
 
-      {/* CHAT WITH DOCTOR (ONLY IF EXISTS) */}
-      {chatId && (
         <TouchableOpacity
-          onPress={() =>
-            router.push(`/chat?chatId=${chatId}` as any)
-          }
-          style={{
-            backgroundColor: "#0ea5e9",
-            padding: 20,
-            borderRadius: 12,
-            marginTop: 10,
-          }}
-        >
-          <Text style={{ color: "white", fontSize: 18 }}>
-            💬 {i18n.t("dashboard.chatTitle")}
-          </Text>
-          <Text style={{ color: "white", marginTop: 5 }}>
-            {i18n.t("dashboard.chatSub")}
-          </Text>
-        </TouchableOpacity>
-
-      )}
-
-   <TouchableOpacity onPress={() => router.push("/recommendation/recommendation" as any)}
+      onPress={() => router.push("/diet" as any)}
         style={{
-          backgroundColor: "#47A8EB",
+          backgroundColor: "#16a34a",
           padding: 20,
           borderRadius: 12,
           marginBottom: 15,
-          marginTop:18
-        }}>
-         <Text>Get Personalized Recommendations</Text>
+        }}
+      >
+        <Text style={{ color: "white", fontSize: 18 }}>
+          Foot Care
+        </Text>
+        <Text style={{ color: "white", marginTop: 5 }}>
+          {i18n.t("dashboard.dietSub")}
+        </Text>
       </TouchableOpacity>
-
 
     </View>
   );
