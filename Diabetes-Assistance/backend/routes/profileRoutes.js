@@ -19,19 +19,30 @@ router.post("/doctor", protect, createDoctorProfile);
 
 /* ================= GET MY PROFILE ================= */
 // ✅ Patient: get own profile
-router.get("/patient/me", protect, async (req, res) => {
-  const profile = await PatientProfile.findOne({
-    userId: req.userId,
-  });
 
-  if (!profile) {
-    return res.status(404).json({
-      message: "Patient profile not found",
+router.get("/patient/me", protect, async (req, res) => {
+  try {
+
+    const profile = await PatientProfile.findOne({
+      userId: req.userId,
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        message: "Patient profile not found",
+      });
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.log("Error fetching patient profile:", error);
+
+    res.status(500).json({
+      message: "Server error while fetching patient profile",
     });
   }
-
-  res.json(profile);
 });
+
 
 // ✅ Doctor: get own profile
 router.get("/doctor/me", protect, async (req, res) => {

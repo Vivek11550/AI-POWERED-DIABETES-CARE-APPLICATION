@@ -29,11 +29,12 @@ export default function Login() {
   // 🔹 Login logic (UNCHANGED)
   const login = async () => {
     try {
+
+
       const res = await API.post(AUTH.LOGIN, {
         email,
         password,
       });
-      console.log("res",res)
 
       alert("Login successful");
 
@@ -42,14 +43,18 @@ export default function Login() {
 
       if (!res.data.profileCompleted) {
         if (res.data.role === "patient") {
-          router.replace("/profile/patient" as any);
+          router.replace("/Completeprofile/patient" as any);
         } else {
-          router.replace("/profile/doctor" as any);
+          router.replace("/Completeprofile/doctor" as any);
         }
       } else {
         if (res.data.role === "patient") {
           router.replace("/dashboard/patient" as any);
-        } else {
+        }
+        if (res.data.role === "admin") {
+          router.replace("/admin/createDoctor" as any);
+        }
+        else {
           router.replace("/dashboard/doctor" as any);
         }
       }
@@ -158,10 +163,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 16,
   },
-  title:{textAlign: "center",
+  title: {
+    textAlign: "center",
     fontSize: 13,
     fontWeight: "600",
-    marginBottom: 24,},
+    marginBottom: 24,
+  },
 
   logo: {
     height: 90,

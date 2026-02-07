@@ -20,7 +20,7 @@ app.use("/api/assessment", assessmentRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/chat", chatRoutes);
 
-
+console.log("Env",process.env.MONGO_URI)
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))

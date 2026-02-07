@@ -2,20 +2,61 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+
+
 export const register = async (req, res) => {
-  const { email, password, role } = req.body;
+  try {
+    const { email, password, role } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    if (!email || !password || !role) {
+      return res.status(400).json({
+        message: "Email, password, and role are required",
+      });
+    }
 
-  const user = new User({
-    email,
-    password: hashedPassword,
-    role,
-  });
+    if (!email.includes("@")) {
+      return res.status(400).json({
+        message: "Invalid email address",
+      });
+    }
 
-  await user.save();
-  res.status(201).json({ message: "User registered" });
+
+    const allowedRoles = ["user", "doctor", "admin"];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({
+        message: "Invalid role",
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        message: "User already exists with this email",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      role,
+    });
+
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      userId: user._id,
+    });
+  } catch (error) {
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
 };
+
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
