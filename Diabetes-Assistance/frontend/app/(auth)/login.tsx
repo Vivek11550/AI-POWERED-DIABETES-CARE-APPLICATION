@@ -41,6 +41,8 @@ export default function Login() {
       await AsyncStorage.setItem("token", res.data.token);
       await AsyncStorage.setItem("role", res.data.role);
 
+
+
       if (!res.data.profileCompleted) {
         if (res.data.role === "patient") {
           router.replace("/Completeprofile/patient" as any);
@@ -51,7 +53,7 @@ export default function Login() {
         if (res.data.role === "patient") {
           router.replace("/dashboard/patient" as any);
         }
-        if (res.data.role === "admin") {
+        else if (res.data.role === "admin") {
           router.replace("/admin/createDoctor" as any);
         }
         else {
