@@ -45,3 +45,19 @@ export const createAssessment = async (req, res) => {
     assessmentId: assessment._id,
   });
 };
+
+
+
+export const getLatestAssessment = async (req, res) => {
+  const assessment = await HealthAssessment.findOne({
+    userId: req.userId,
+  }).sort({ createdAt: -1 });
+
+  if (!assessment) {
+    return res.status(404).json({
+      message: "No assessment found",
+    });
+  }
+
+  res.json(assessment);
+};
