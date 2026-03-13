@@ -3,6 +3,7 @@ import {
   View,
   TextInput,
   StyleSheet,
+  Button
 } from "react-native";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -13,10 +14,14 @@ import ProfileTitle from "../../components/profile/ProfileTitle";
 import InfoSection from "../../components/profile/InfoSection";
 import InfoRow from "../../components/profile/InfoRow";
 import EditProfileButton from "../../components/profile/EditProfileButton";
+import { useAuth } from "@/src/context/AuthContext";
+
 
 export default function PatientProfile() {
   const [profile, setProfile] = useState<any>({});
   const [edit, setEdit] = useState(false);
+
+  const { logout } = useAuth();
 
   useEffect(() => {
     loadProfile();
@@ -147,6 +152,9 @@ export default function PatientProfile() {
         title={edit ? "Save Profile" : "Edit Profile"}
         onPress={edit ? saveProfile : () => setEdit(true)}
       />
+      <View>
+      <Button title="Logout" onPress={logout} />
+    </View>
     </ScrollView>
   );
 }
