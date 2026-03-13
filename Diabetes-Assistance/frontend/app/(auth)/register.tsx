@@ -8,7 +8,7 @@ import { i18n } from "@/src/i18n/i18n";
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"patient" | "doctor">("patient");
+  const role = "patient";
   const router = useRouter();
 
   const register = async () => {
@@ -44,11 +44,8 @@ export default function Register() {
         onChangeText={setPassword}
       />
 
-      <Text>Select Role</Text>
-      <Button title="Patient" onPress={() => setRole("patient")} />
-      <Button title="Doctor" onPress={() => setRole("doctor")} />
-
       <Button title="Register" onPress={register} />
+      <Text>Note: This registration is for patients only</Text>
     </View>
   );
 }

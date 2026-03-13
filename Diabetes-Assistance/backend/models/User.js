@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
-  role: { type: String, enum: ["patient", "doctor"] },
+  role: { type: String, enum: ["patient","doctor","admin"] },
   profileCompleted: { type: Boolean, default: false },
 });
 
