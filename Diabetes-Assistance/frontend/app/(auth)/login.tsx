@@ -5,85 +5,82 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
-import {  useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import API from "../../src/services/api";
 import { AUTH } from "../../src/services/endpoints";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@/src/context/AuthContext";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function Login() {
   const router = useRouter();
 
-  // ✅ Language context
+  const { login: saveLogin } = useAuth();
   const { t } = useLanguage();
+
   console.log("Login render");
 
-  // 🔹 Core login state (UNCHANGED)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // 🔹 Login logic (UNCHANGED)
   const login = async () => {
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+
     try {
+      setLoading(true);
+
       const res = await API.post(AUTH.LOGIN, {
         email,
         password,
       });
-      
+
       alert("Login successful");
 
-      await AsyncStorage.setItem("token", res.data.token);
-      await AsyncStorage.setItem("role", res.data.role);
+      await saveLogin(
+        res.data.token,
+        res.data.role,
+        res.data.profileCompleted
+      );
 
-      if (!res.data.profileCompleted) {
-        if (res.data.role === "patient") {
-          router.replace("/Completeprofile/patient" as any);
-        } else {
-          router.replace("/Completeprofile/doctor" as any);
-        }
-      } else {
-        if (res.data.role === "patient") {
-          router.replace("/dashboard/patient" as any);
-        } else {
-          router.replace("/dashboard/doctor" as any);
-        }
-      }
+      // ❗ No navigation here
+      // AuthGate in _layout.tsx handles redirect automatically
     } catch (error: any) {
       const message = error?.response?.data?.message || "Login failed";
       alert(message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.root}>
-      {/* 🔹 Language Switcher (top layer) */}
       <View style={styles.langSwitch}>
         <LanguageSwitcher />
       </View>
 
-      {/* 🔹 Centered content */}
       <View style={styles.container}>
-        
-        <View style={styles.card} >
-          <Text style={styles.welcome}>
-            {t("auth.welcomeBack")}
-          </Text>
+        <View style={styles.card}>
+          <Text style={styles.welcome}>{t("auth.welcomeBack")}</Text>
 
           <Image
             source={require("../../assets/images/bvdu-logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
+
           <Text style={styles.title}>
-            Effectiveness of AI based Nurse led Program on Patients with Diabetes mellitus management
+            Effectiveness of AI based Nurse led Program on Patients with
+            Diabetes mellitus management
           </Text>
 
-          <Text style={styles.label}>
-            {t("auth.emailLabel")}
-          </Text>
+          <Text style={styles.label}>{t("auth.emailLabel")}</Text>
 
           <TextInput
             style={styles.input}
@@ -93,9 +90,7 @@ export default function Login() {
             placeholder={t("auth.emailPlaceholder")}
           />
 
-          <Text style={styles.label}>
-            {t("auth.passwordLabel")}
-          </Text>
+          <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
 
           <TextInput
             style={styles.input}
@@ -105,10 +100,16 @@ export default function Login() {
             placeholder={t("auth.passwordPlaceholder")}
           />
 
-          <TouchableOpacity style={styles.loginBtn} onPress={login}>
-            <Text style={styles.loginText}>
-              {t("auth.loginButton")}
-            </Text>
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={login}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.loginText}>{t("auth.loginButton")}</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -156,10 +157,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 16,
   },
-  title:{textAlign: "center",
+
+  title: {
+    textAlign: "center",
     fontSize: 13,
     fontWeight: "600",
-    marginBottom: 24,},
+    marginBottom: 24,
+  },
 
   logo: {
     height: 90,

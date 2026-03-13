@@ -1,0 +1,19 @@
+1. auth logic left 
+2. all page custom header navigation 
+3. set language for each componnet 
+4. question assesment + saving in backend
+5.merge test and  test build  
+
+
+1.chat optimization 
+2.data export 
+3.hosting procedure 
+
+
+
+
+Queries 
+1.exersise chage karna h kya  high risk parient ke liye 
+2.diet change karna h according to all 3 level and also low sugar level ???
+3.low sugar level ko handle karna h ??
+4.bina email ya otp ke account recovery kaise hoga ??? dena h ya nahi  

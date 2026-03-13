@@ -56,6 +56,15 @@ export default function PatientDashboard() {
     return (
       <View style={styles.center}>
         <Text style={styles.emptyText}>No assessment found</Text>
+         <TouchableOpacity 
+            onPress={() => router.push("/recommendation/recommendation" as any)}
+            style={[styles.actionButton, { backgroundColor: "#4f46e5" }]}
+          >
+            <Text style={styles.buttonIcon}>🎯</Text>
+            <View>
+              <Text style={styles.buttonText}>perform health assesmet</Text>
+            </View>
+          </TouchableOpacity>
       </View>
     );
   }
