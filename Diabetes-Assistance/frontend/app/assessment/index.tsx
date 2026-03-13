@@ -21,7 +21,7 @@ export default function Assessment() {
   const router = useRouter();
 
   const calculateBMI = () => {
-    const heightCm = 170; // from profile later
+    const heightCm = 170; 
     const heightM = heightCm / 100;
     return (Number(weight) / (heightM * heightM)).toFixed(1);
   };

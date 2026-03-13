@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   },
 
   active: {
-    backgroundColor: "#9CC9A7",
+    backgroundColor: "#0ea5e9",
   },
 
   text: {

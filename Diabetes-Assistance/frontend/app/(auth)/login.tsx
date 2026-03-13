@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useState } from "react";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import API from "../../src/services/api";
 import { AUTH } from "../../src/services/endpoints";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,8 +18,7 @@ export default function Login() {
   const router = useRouter();
 
   // ✅ Language context
-  const { t, lang } = useLanguage();
-
+  const { t } = useLanguage();
   console.log("Login render");
 
   // 🔹 Core login state (UNCHANGED)
@@ -75,8 +74,8 @@ export default function Login() {
 
       {/* 🔹 Centered content */}
       <View style={styles.container}>
-        {/* 🔥 key={lang} forces proper refresh for TextInput + Text */}
-        <View style={styles.card} key={lang}>
+
+        <View style={styles.card} >
           <Text style={styles.welcome}>
             {t("auth.welcomeBack")}
           </Text>
@@ -194,7 +193,7 @@ const styles = StyleSheet.create({
   },
 
   loginBtn: {
-    backgroundColor: "#9CC9A7",
+    backgroundColor: "#0ea5e9",
     paddingVertical: 14,
     borderRadius: 30,
     alignItems: "center",
@@ -210,6 +209,6 @@ const styles = StyleSheet.create({
   registerText: {
     textAlign: "center",
     marginTop: 16,
-    color: "#5A7D6C",
+    color: "#0ea5e9",
   },
 });
