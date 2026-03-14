@@ -3,6 +3,7 @@ import { useState } from "react";
 import API from "../../src/services/api";
 import { AUTH } from "../../src/services/endpoints";
 import { i18n } from "@/src/i18n/i18n";
+import { router } from "expo-router";
 
 export default function createDoctor() {
     const [email, setEmail] = useState("");
@@ -45,6 +46,22 @@ export default function createDoctor() {
 
             <Button title="Register" onPress={register} />
             <Text>Note: This registration is for doctors only</Text>
+
+
+
+            <View style={{ marginTop: 20 }}>
+                <Button
+                    title="View All Doctors"
+                    onPress={() => router.push("/admin/doctorList")}
+                />
+            </View>
+
+            <View style={{ marginTop: 10 }}>
+                <Button
+                    title="View All Patients"
+                    onPress={() => router.push("/admin/patientList")}
+                />
+            </View>
 
         </View>
     );
