@@ -3,21 +3,40 @@ import User from "../models/User.js";
 
 // Summary + High Risk
 export const doctorDashboard = async (req, res) => {
-  const assessments = await HealthAssessment.find().populate("userId");
+  const assessments = await HealthAssessment.aggregate([
+    { $sort: { createdAt: -1 } }, // newest first
+    {
+      $group: {
+        _id: "$userId",
+        latestAssessment: { $first: "$$ROOT" }
+      }
+    },
+    {
+      $replaceRoot: { newRoot: "$latestAssessment" }
+    }
+  ]);
+
+  const populatedAssessments = await HealthAssessment.populate(assessments, {
+    path: "userId",
+  });
 
   const summary = {
-    level1: assessments.filter(a => a.riskLevel === "Level 1").length,
-    level2: assessments.filter(a => a.riskLevel === "Level 2").length,
-    level3: assessments.filter(a => a.riskLevel === "Level 3").length,
+    level1: populatedAssessments.filter(a => a.riskLevel === "Level 1").length,
+    level2: populatedAssessments.filter(a => a.riskLevel === "Level 2").length,
+    level3: populatedAssessments.filter(a => a.riskLevel === "Level 3").length,
   };
 
-  const highRisk = assessments.filter(a => a.riskLevel === "Level 3");
-  const medRisk = assessments.filter(a => a.riskLevel === "Level 2");
-  const lowRisk = assessments.filter(a => a.riskLevel === "Level 1");
+  const highRisk = populatedAssessments.filter(a => a.riskLevel === "Level 3");
+  const medRisk = populatedAssessments.filter(a => a.riskLevel === "Level 2");
+  const lowRisk = populatedAssessments.filter(a => a.riskLevel === "Level 1");
 
-  res.json({ summary, highRisk, medRisk,lowRisk });
+  res.json({
+    summary,
+    highRisk,
+    medRisk,
+    lowRisk
+  });
 };
-
 export const changePassword = async (req, res) => {
   try {
     const { email, previousPassword, newPassword } = req.body;
