@@ -1,3 +1,4 @@
+import PatientProfile from "../models/PatientProfile.js";
 import HealthAssessment from "../models/HealthAssessment.js";
 import User from "../models/User.js";
 
@@ -91,6 +92,36 @@ export const changePassword = async (req, res) => {
     });
   }
 };
+export const getPatientsWithAssessments = async (req, res) => {
+  try {
+    const patients = await PatientProfile.find().populate("userId", "email");
 
+    const data = await Promise.all(
+      patients.map(async (patient) => {
+        const assessments = await HealthAssessment.find({
+          userId: patient.userId._id,
+        }).sort({ createdAt: -1 });
+
+        return {
+          patient,
+          assessments,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      count: data.length,
+      patients: data,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching patients and assessments",
+      error: error.message,
+    });
+  }
+};
 
 

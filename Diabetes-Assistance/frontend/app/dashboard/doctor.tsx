@@ -204,6 +204,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Button,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
@@ -327,57 +328,66 @@ export default function DoctorDashboard() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* HEADER */}
-      <Text style={styles.header}>
-        {i18n.t("doctor.dashboardTitle")}
-      </Text>
+    <>
+      <ScrollView style={styles.container}>
+        {/* HEADER */}
+        <Text style={styles.header}>
+          {i18n.t("doctor.dashboardTitle")}
+        </Text>
 
-      {/* SUMMARY */}
-      <View style={styles.summaryRow}>
-        <View style={[styles.card, { backgroundColor: "#dcfce7" }]}>
-          <Text style={styles.cardTitle}>{i18n.t("doctor.level1")}</Text>
-          <Text style={styles.cardValue}>{summary.level1}</Text>
+        {/* SUMMARY */}
+        <View style={styles.summaryRow}>
+          <View style={[styles.card, { backgroundColor: "#dcfce7" }]}>
+            <Text style={styles.cardTitle}>{i18n.t("doctor.level1")}</Text>
+            <Text style={styles.cardValue}>{summary.level1}</Text>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: "#fef3c7" }]}>
+            <Text style={styles.cardTitle}>{i18n.t("doctor.level2")}</Text>
+            <Text style={styles.cardValue}>{summary.level2}</Text>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: "#fee2e2" }]}>
+            <Text style={styles.cardTitle}>{i18n.t("doctor.level3")}</Text>
+            <Text style={styles.cardValue}>{summary.level3}</Text>
+          </View>
         </View>
 
-        <View style={[styles.card, { backgroundColor: "#fef3c7" }]}>
-          <Text style={styles.cardTitle}>{i18n.t("doctor.level2")}</Text>
-          <Text style={styles.cardValue}>{summary.level2}</Text>
+        {/* PROFILE BUTTON */}
+        <TouchableOpacity
+          onPress={() => router.push("/profile/doctor" as any)}
+          style={styles.profileButton}
+        >
+          <Text style={styles.profileButtonText}>Go To Profile</Text>
+        </TouchableOpacity>
+
+        <View >
+          <Button
+            title="View Patient Assessments"
+            onPress={() => router.push("/doctor/patientAssessments")}
+          />
         </View>
 
-        <View style={[styles.card, { backgroundColor: "#fee2e2" }]}>
-          <Text style={styles.cardTitle}>{i18n.t("doctor.level3")}</Text>
-          <Text style={styles.cardValue}>{summary.level3}</Text>
-        </View>
-      </View>
+        {/* RISK SECTIONS */}
+        <RiskSection
+          title={`🔴 ${i18n.t("doctor.highRiskTitle")}`}
+          color="#dc2626"
+          patients={highRisk}
+        />
 
-      {/* PROFILE BUTTON */}
-      <TouchableOpacity
-        onPress={() => router.push("/profile/doctor" as any)}
-        style={styles.profileButton}
-      >
-        <Text style={styles.profileButtonText}>Go To Profile</Text>
-      </TouchableOpacity>
+        <RiskSection
+          title={`🟡 ${i18n.t("doctor.level2")}`}
+          color="#f59e0b"
+          patients={medRisk}
+        />
 
-      {/* RISK SECTIONS */}
-      <RiskSection
-        title={`🔴 ${i18n.t("doctor.highRiskTitle")}`}
-        color="#dc2626"
-        patients={highRisk}
-      />
-
-      <RiskSection
-        title={`🟡 ${i18n.t("doctor.level2")}`}
-        color="#f59e0b"
-        patients={medRisk}
-      />
-
-      <RiskSection
-        title={`🟢 ${i18n.t("doctor.level1")}`}
-        color="#16a34a"
-        patients={lowRisk}
-      />
-    </ScrollView>
+        <RiskSection
+          title={`🟢 ${i18n.t("doctor.level1")}`}
+          color="#16a34a"
+          patients={lowRisk}
+        />
+      </ScrollView>
+    </>
   );
 }
 
