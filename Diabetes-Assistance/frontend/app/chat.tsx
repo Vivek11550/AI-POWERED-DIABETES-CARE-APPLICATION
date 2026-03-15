@@ -5,16 +5,20 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Alert,
+  Image, Modal, TouchableWithoutFeedback
 } from "react-native";
 import { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../src/services/api";
+import * as ImagePicker from "expo-image-picker";
 
 type Message = {
   _id: string;
   senderRole: "doctor" | "patient";
   message: string;
+  imageUrl?: string;
 };
 
 export default function ChatScreen() {
@@ -31,10 +35,22 @@ export default function ChatScreen() {
   const [senderRole, setSenderRole] =
     useState<"doctor" | "patient">("doctor");
   const [loadingChat, setLoadingChat] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     initChat();
   }, []);
+
+  const confirmDelete = (messageId: string) => {
+    Alert.alert(
+      "Delete message",
+      "Are you sure you want to delete this message?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", onPress: () => deleteMessage(messageId) },
+      ]
+    );
+  };
 
   /* ---------------- INIT CHAT ---------------- */
 
@@ -152,13 +168,72 @@ export default function ChatScreen() {
     }
   };
 
+  const sendImage = async (uri: any) => {
+    const token = await AsyncStorage.getItem("token");
+
+    const formData = new FormData();
+
+    // For React Native, FormData accepts a file object with uri, name, and type
+    // @ts-ignore
+    formData.append("image", {
+      uri: uri,
+      name: "chat.jpg",
+      type: "image/jpeg",
+    } as any);
+
+    formData.append("senderRole", senderRole);
+
+    await API.post(`/chat/${chatId}/message`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    loadMessages(chatId);
+  };
+
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      sendImage(result.assets[0].uri);
+    }
+  };
+
+  /* ---------------- DELETE MESSAGE ---------------- */
+  const deleteMessage = async (messageId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
+
+      await API.delete(`/chat/message/${messageId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      loadMessages(chatId); // reload chat
+    } catch (error) {
+      console.log("Delete message error:", error);
+    }
+  };
+
   /* ---------------- RENDER MESSAGE ---------------- */
 
   const renderItem = ({ item }: { item: Message }) => {
     const isMe = item.senderRole === senderRole;
 
+
     return (
-      <View
+      <TouchableOpacity
+        onLongPress={() => {
+          if (isMe) confirmDelete(item._id);
+        }}
         style={[
           styles.messageBubble,
           isMe ? styles.myBubble : styles.otherBubble,
@@ -172,9 +247,28 @@ export default function ChatScreen() {
         >
           {item.message}
         </Text>
-      </View>
+        {item?.imageUrl && (
+          <TouchableOpacity
+            onPress={() =>
+              setSelectedImage(`${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}`)
+            }
+          >
+            <Image
+              source={{ uri: `${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}` }}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 10,
+                marginTop: 5,
+              }}
+            />
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
     );
   };
+
+
 
   return (
     <View style={styles.container}>
@@ -184,6 +278,34 @@ export default function ChatScreen() {
           Consultation with {headerName}
         </Text>
       </View>
+
+      <Modal
+        visible={!!selectedImage}
+        transparent={true}
+        animationType="fade"
+      >
+        <TouchableWithoutFeedback onPress={() => setSelectedImage(null)}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.9)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={{
+                  width: "90%",
+                  height: "70%",
+                  resizeMode: "contain",
+                }}
+              />
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* CHAT LIST */}
       <FlatList
@@ -202,6 +324,12 @@ export default function ChatScreen() {
 
       {/* INPUT */}
       <View style={styles.inputRow}>
+
+        <TouchableOpacity onPress={pickImage}>
+          <Text style={{ fontSize: 22 }}>📷</Text>
+        </TouchableOpacity>
+
+
         <TextInput
           placeholder="Type message..."
           value={text}
@@ -232,7 +360,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
   },
   header: {
-    
+
     padding: 35,
     backgroundColor: "#2563eb",
   },
@@ -266,7 +394,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#e5e7eb",
     backgroundColor: "white",
-    marginBottom:15
+    marginBottom: 15
   },
   input: {
     flex: 1,

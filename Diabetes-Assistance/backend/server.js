@@ -21,6 +21,8 @@ app.use("/api/doctor", doctorRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminRoutes);
 
+app.use("/uploads", express.static("uploads"));
+
 console.log("Env",process.env.MONGO_URI)
 mongoose
   .connect(process.env.MONGO_URI)

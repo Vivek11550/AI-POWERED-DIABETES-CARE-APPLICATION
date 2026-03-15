@@ -3,15 +3,16 @@ import {
   startChat,
   getMessages,
   sendMessage,
+  deleteMessage,
 } from "../controllers/chatController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import Chat from "../models/Chat.js"; 
+import { uploadChatImage } from "../middleware/upload.js";
 
 const router = express.Router();
 
 router.post("/start", protect, startChat);
 router.get("/:chatId/messages", protect, getMessages);
-router.post("/:chatId/message", protect, sendMessage);
 
 
 // ✅ Patient fetches existing chat
@@ -34,5 +35,8 @@ router.get("/patient", protect, async (req, res) => {
     });
   }
 });
+
+router.delete("/message/:messageId",protect, deleteMessage);
+router.post("/:chatId/message", protect, uploadChatImage.single("image"), sendMessage);
 
 export default router;
