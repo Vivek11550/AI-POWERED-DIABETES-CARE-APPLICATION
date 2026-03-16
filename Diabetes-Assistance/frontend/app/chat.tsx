@@ -275,7 +275,7 @@ export default function ChatScreen() {
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          Consultation with {headerName}
+          Consultation with Doctor
         </Text>
       </View>
 

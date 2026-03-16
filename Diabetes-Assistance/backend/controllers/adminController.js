@@ -1,3 +1,5 @@
+import DoctorProfile from "../models/DoctorProfile.js";
+import PatientProfile from "../models/PatientProfile.js";
 
 export const getAllDoctors = async (req, res) => {
   try {
