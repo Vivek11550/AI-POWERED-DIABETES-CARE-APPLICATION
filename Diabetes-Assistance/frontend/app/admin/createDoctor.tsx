@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Button
 } from "react-native";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,7 +56,7 @@ export default function CreateDoctor() {
   return (
     <SafeAreaView style={styles.root}>
       {/* ================= HEADER CONFIG ================= */}
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           title: "Admin Dashboard",
           headerShown: true,
@@ -71,15 +72,15 @@ export default function CreateDoctor() {
               <Ionicons name="log-out-outline" size={22} color="#EF4444" />
             </TouchableOpacity>
           )
-        }} 
+        }}
       />
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
+
           <View style={styles.headerSection}>
             <View style={styles.adminBadge}>
               <Text style={styles.adminBadgeText}>ADMIN PANEL</Text>
@@ -118,10 +119,10 @@ export default function CreateDoctor() {
                 placeholderTextColor="#94A3B8"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                <Ionicons 
-                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                  size={20} 
-                  color="#64748B" 
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#64748B"
                 />
               </TouchableOpacity>
             </View>
@@ -136,10 +137,26 @@ export default function CreateDoctor() {
               ) : (
                 <>
                   <Text style={styles.registerBtnText}>Create Doctor Account</Text>
-                  <Ionicons name="person-add-outline" size={20} color="white" style={{marginLeft: 8}} />
+                  <Ionicons name="person-add-outline" size={20} color="white" style={{ marginLeft: 8 }} />
                 </>
               )}
             </TouchableOpacity>
+
+
+            <View style={{ marginTop: 20 }}>
+              <Button
+                title="View All Doctors"
+                onPress={() => router.push("/admin/doctorList")}
+              />
+            </View>
+
+            <View style={{ marginTop: 10 }}>
+              <Button
+                title="View All Patients"
+                onPress={() => router.push("/admin/patientList")}
+              />
+            </View>
+
           </View>
 
           <Text style={styles.footerNote}>
@@ -158,12 +175,12 @@ const styles = StyleSheet.create({
   logoutHeaderBtn: { marginRight: 15, padding: 5 },
   scrollContent: { padding: 24, justifyContent: 'center' },
   headerSection: { alignItems: 'center', marginBottom: 30 },
-  adminBadge: { 
-    backgroundColor: '#0F172A', 
-    paddingHorizontal: 12, 
-    paddingVertical: 4, 
-    borderRadius: 6, 
-    marginBottom: 10 
+  adminBadge: {
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 10
   },
   adminBadgeText: { color: 'white', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   title: { fontSize: 26, fontWeight: "800", color: "#0F172A" },
@@ -179,12 +196,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9'
   },
-  infoBox: { 
-    flexDirection: 'row', 
-    backgroundColor: '#F0F9FF', 
-    padding: 12, 
-    borderRadius: 12, 
-    marginBottom: 20, 
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: '#F0F9FF',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#BAE6FD'

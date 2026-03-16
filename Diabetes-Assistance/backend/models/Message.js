@@ -5,6 +5,7 @@ const messageSchema = new mongoose.Schema({
   senderRole: { type: String, enum: ["doctor", "patient"] },
   senderId: mongoose.Schema.Types.ObjectId,
   message: String,
+  imageUrl: String,
   createdAt: { type: Date, default: Date.now },
 });
 

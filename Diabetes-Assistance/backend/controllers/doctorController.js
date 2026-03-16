@@ -1,23 +1,43 @@
+import PatientProfile from "../models/PatientProfile.js";
 import HealthAssessment from "../models/HealthAssessment.js";
 import User from "../models/User.js";
 
 // Summary + High Risk
 export const doctorDashboard = async (req, res) => {
-  const assessments = await HealthAssessment.find().populate("userId");
+  const assessments = await HealthAssessment.aggregate([
+    { $sort: { createdAt: -1 } }, // newest first
+    {
+      $group: {
+        _id: "$userId",
+        latestAssessment: { $first: "$$ROOT" }
+      }
+    },
+    {
+      $replaceRoot: { newRoot: "$latestAssessment" }
+    }
+  ]);
+
+  const populatedAssessments = await HealthAssessment.populate(assessments, {
+    path: "userId",
+  });
 
   const summary = {
-    level1: assessments.filter(a => a.riskLevel === "Level 1").length,
-    level2: assessments.filter(a => a.riskLevel === "Level 2").length,
-    level3: assessments.filter(a => a.riskLevel === "Level 3").length,
+    level1: populatedAssessments.filter(a => a.riskLevel === "Level 1").length,
+    level2: populatedAssessments.filter(a => a.riskLevel === "Level 2").length,
+    level3: populatedAssessments.filter(a => a.riskLevel === "Level 3").length,
   };
 
-  const highRisk = assessments.filter(a => a.riskLevel === "Level 3");
-  const medRisk = assessments.filter(a => a.riskLevel === "Level 2");
-  const lowRisk = assessments.filter(a => a.riskLevel === "Level 1");
+  const highRisk = populatedAssessments.filter(a => a.riskLevel === "Level 3");
+  const medRisk = populatedAssessments.filter(a => a.riskLevel === "Level 2");
+  const lowRisk = populatedAssessments.filter(a => a.riskLevel === "Level 1");
 
-  res.json({ summary, highRisk, medRisk,lowRisk });
+  res.json({
+    summary,
+    highRisk,
+    medRisk,
+    lowRisk
+  });
 };
-
 export const changePassword = async (req, res) => {
   try {
     const { email, previousPassword, newPassword } = req.body;
@@ -72,3 +92,36 @@ export const changePassword = async (req, res) => {
     });
   }
 };
+export const getPatientsWithAssessments = async (req, res) => {
+  try {
+    const patients = await PatientProfile.find().populate("userId", "email");
+
+    const data = await Promise.all(
+      patients.map(async (patient) => {
+        const assessments = await HealthAssessment.find({
+          userId: patient.userId._id,
+        }).sort({ createdAt: -1 });
+
+        return {
+          patient,
+          assessments,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      count: data.length,
+      patients: data,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching patients and assessments",
+      error: error.message,
+    });
+  }
+};
+
+
