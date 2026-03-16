@@ -1,11 +1,11 @@
-// components/profile/ProfileAvatar.tsx
+
 import { View, Image, StyleSheet } from "react-native";
 
 export default function ProfileAvatar() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../assets/images/femaleprofile.png")} 
+        source={require("../../assets/images/profileIcon.png")} 
         style={styles.avatar}
       />
     </View>
@@ -15,12 +15,10 @@ export default function ProfileAvatar() {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    marginBottom: 10,
-    marginTop:30
   },
   avatar: {
-    width: 100,
-    height: 100,
+    width: 230,
+    height: 230,
     borderRadius: 50,
   },
 });

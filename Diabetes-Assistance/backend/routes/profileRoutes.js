@@ -46,44 +46,75 @@ router.get("/patient/me", protect, async (req, res) => {
 
 // ✅ Doctor: get own profile
 router.get("/doctor/me", protect, async (req, res) => {
-  const profile = await DoctorProfile.findOne({
-    userId: req.userId,
-  });
+  try {
+    const profile = await DoctorProfile.findOne({
+      userId: req.userId,
+    });
 
-  if (!profile) {
-    return res.status(404).json({
-      message: "Doctor profile not found",
+    if (!profile) {
+      return res.status(404).json({
+        message: "Doctor profile not found",
+      });
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.log("Error fetching doctor profile:", error);
+    res.status(500).json({
+      message: "Server error fetching doctor profile",
     });
   }
-
-  res.json(profile);
 });
 
 
 /* ================= UPDATE MY PROFILE ================= */
 // ✅ Patient: update profile
 router.put("/patient", protect, async (req, res) => {
-  const updated = await PatientProfile.findOneAndUpdate(
-    { userId: req.userId },
-    req.body,
-    { new: true }
-  );
+  try {
+    const updated = await PatientProfile.findOneAndUpdate(
+      { userId: req.userId },
+      req.body,
+      { new: true }
+    );
 
-  res.json(updated);
+    if (!updated) {
+      return res.status(404).json({
+        message: "Patient profile not found",
+      });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    console.log("Error updating patient profile:", error);
+    res.status(500).json({
+      message: "Server error updating profile",
+    });
+  }
 });
 
 // ✅ Doctor: update profile
 router.put("/doctor", protect, async (req, res) => {
-  const updated = await DoctorProfile.findOneAndUpdate(
-    { userId: req.userId },
-    req.body,
-    { new: true }
-  );
+  try {
+    const updated = await DoctorProfile.findOneAndUpdate(
+      { userId: req.userId },
+      req.body,
+      { new: true }
+    );
 
-  res.json(updated);
+    if (!updated) {
+      return res.status(404).json({
+        message: "Doctor profile not found",
+      });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    console.log("Error updating doctor profile:", error);
+    res.status(500).json({
+      message: "Server error updating profile",
+    });
+  }
 });
-
-
 
 /* ================= GET PROFILE BY ID (CHAT) ================= */
 

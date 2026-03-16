@@ -18,7 +18,7 @@ export default function ProfileTitle({
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 10,
   },
   name: {
     fontSize: 22,

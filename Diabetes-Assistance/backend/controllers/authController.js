@@ -21,7 +21,7 @@ export const register = async (req, res) => {
     }
 
 
-    const allowedRoles = ["user", "doctor", "admin"];
+    const allowedRoles = ["patient", "doctor", "admin"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({
         message: "Invalid role",

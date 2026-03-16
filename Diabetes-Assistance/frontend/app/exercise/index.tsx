@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from "react-native";
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 
 const exercises = [
   {
@@ -20,13 +21,13 @@ const exercises = [
     icon: "speedometer-outline",
     color: "#10b981"
   },
-  {
-    title: "Running",
-    sub: "8 kilometers/hour pace",
-    met: "8.2",
-    videoSource: require("../../assets/video/Brisk_Walking.mp4"),
-    icon: "fitness-outline",
-    color: "#ef4444"
+{
+    title: "Deep Breath",
+    sub: "Slow, rhythmic diaphragmatic breathing",
+    met: "1.3", 
+    videoSource: require("../../assets/video/Animated_Deep_Breath.mp4"),
+    icon: "fitness-outline", 
+    color: "#06b6d4" 
   },
   {
     title: "Yoga",
@@ -47,13 +48,30 @@ const exercises = [
 ];
 
 export default function ExerciseScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* ================= HEADER CONFIG ================= */}
+      <Stack.Screen 
+        options={{
+          title: "My Exercise Plan",
+          headerShown: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: '#f8fafc' },
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color="#0F172A" />
+            </TouchableOpacity>
+          ),
+        }} 
+      />
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Exercise Plan</Text>
+          <Text style={styles.headerTitle}>Physical Activity</Text>
           <Text style={styles.headerSub}>
-            Physical activity increases METs (Metabolic Equivalents) to help manage blood sugar.
+            Increasing METs (Metabolic Equivalents) helps muscles use glucose more effectively.
           </Text>
         </View>
 
@@ -69,28 +87,35 @@ export default function ExerciseScreen() {
                 shouldPlay
                 isMuted
               />
-              <View style={styles.overlayBadge}>
+              <View style={[styles.overlayBadge, { backgroundColor: item.color }]}>
                 <Ionicons name={item.icon as any} size={16} color="white" />
+                <Text style={styles.badgeText}>Active</Text>
               </View>
             </View>
 
             <View style={styles.cardInfo}>
               <View style={styles.titleRow}>
-                <Text style={styles.exTitle}>{item.title}</Text>
+                <View>
+                  <Text style={styles.exTitle}>{item.title}</Text>
+                  <Text style={styles.exSub}>{item.sub}</Text>
+                </View>
                 <View style={[styles.metBadge, { backgroundColor: item.color + '15' }]}>
-                  <Text style={[styles.metText, { color: item.color }]}>{item.met} METs</Text>
+                  <Text style={[styles.metText, { color: item.color }]}>{item.met}</Text>
+                  <Text style={[styles.metUnit, { color: item.color }]}>METs</Text>
                 </View>
               </View>
-              <Text style={styles.exSub}>{item.sub}</Text>
             </View>
           </View>
         ))}
 
         {/* Doctor's Note */}
         <View style={styles.doctorNote}>
-          <Ionicons name="information-circle" size={20} color="#64748b" />
+          <View style={styles.noteHeader}>
+            <Ionicons name="medical" size={18} color="#0EA5E9" />
+            <Text style={styles.noteTitle}>Clinician's Note</Text>
+          </View>
           <Text style={styles.noteText}>
-            Walking up stairs (4.7 METs) and regular swimming are also highly recommended.
+            Regular movement prevents insulin resistance. Try taking the stairs (4.7 METs) whenever possible for extra benefit.
           </Text>
         </View>
       </ScrollView>
@@ -100,10 +125,11 @@ export default function ExerciseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafc" },
+  backBtn: { marginLeft: 10, padding: 5 },
   scrollContent: { padding: 20, paddingBottom: 40 },
-  header: { marginBottom: 25, marginTop: 10 },
-  headerTitle: { fontSize: 28, fontWeight: "800", color: "#1e293b" },
-  headerSub: { fontSize: 14, color: "#64748b", marginTop: 5, lineHeight: 20 },
+  header: { marginBottom: 25 },
+  headerTitle: { fontSize: 26, fontWeight: "800", color: "#0f172a" },
+  headerSub: { fontSize: 14, color: "#64748b", marginTop: 4, lineHeight: 20 },
   
   exCard: {
     backgroundColor: "white",
@@ -111,39 +137,52 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    // Premium Shadow
-    shadowColor: "#000",
+    borderColor: "#f1f5f9",
+    elevation: 3,
+    shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    shadowRadius: 12,
   },
-  videoContainer: { width: "100%", height: 200, backgroundColor: "#f1f5f9", position: 'relative' },
+  videoContainer: { width: "100%", height: 180, backgroundColor: "#000", position: 'relative' },
   video: { flex: 1 },
   overlayBadge: {
     position: 'absolute',
     top: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    padding: 8,
-    borderRadius: 12,
-  },
-  cardInfo: { padding: 18 },
-  titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  exTitle: { fontSize: 18, fontWeight: "700", color: "#1e293b" },
-  metBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  metText: { fontSize: 12, fontWeight: "800" },
-  exSub: { fontSize: 14, color: "#64748b", marginTop: 4, fontWeight: "500" },
-  
-  doctorNote: {
+    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    padding: 15,
-    borderRadius: 15,
-    marginTop: 10,
-    gap: 10
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
   },
-  noteText: { flex: 1, fontSize: 13, color: '#475569', lineHeight: 18 }
+  badgeText: { color: 'white', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  
+  cardInfo: { padding: 20 },
+  titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  exTitle: { fontSize: 18, fontWeight: "700", color: "#1e293b" },
+  exSub: { fontSize: 13, color: "#64748b", marginTop: 2, fontWeight: "500" },
+  
+  metBadge: { 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    width: 60, 
+    height: 60, 
+    borderRadius: 16 
+  },
+  metText: { fontSize: 18, fontWeight: "900" },
+  metUnit: { fontSize: 9, fontWeight: "700", textTransform: 'uppercase', marginTop: -2 },
+  
+  doctorNote: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 20,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  noteHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 6 },
+  noteTitle: { fontSize: 14, fontWeight: '800', color: '#0EA5E9', textTransform: 'uppercase' },
+  noteText: { fontSize: 13, color: '#475569', lineHeight: 18, fontWeight: '500' }
 });
