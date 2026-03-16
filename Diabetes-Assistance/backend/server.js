@@ -7,6 +7,8 @@ import assessmentRoutes from "./routes/assessmentRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import exportRoutes from "./routes/exportRoutes.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -20,6 +22,7 @@ app.use("/api/assessment", assessmentRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/export", exportRoutes);
 
 app.use("/uploads", express.static("uploads"));
 

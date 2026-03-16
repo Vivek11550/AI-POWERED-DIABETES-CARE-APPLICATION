@@ -368,6 +368,26 @@ export default function DoctorDashboard() {
           />
         </View>
 
+        <TouchableOpacity
+          onPress={() => router.push("/export/exportData" as any)}
+          style={{
+            backgroundColor: "#6366f1",
+            padding: 14,
+            borderRadius: 8,
+            marginTop: 15,
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              textAlign: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Export Data
+          </Text>
+        </TouchableOpacity>
+
         {/* RISK SECTIONS */}
         <RiskSection
           title={`🔴 ${i18n.t("doctor.highRiskTitle")}`}
