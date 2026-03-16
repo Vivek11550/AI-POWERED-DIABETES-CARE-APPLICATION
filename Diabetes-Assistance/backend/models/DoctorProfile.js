@@ -10,7 +10,8 @@ const doctorProfileSchema = new mongoose.Schema({
   specialization: String,
   qualification: String,
   registrationNumber: String,
-  hospitalName: String,
+  email: String,
+  phone: String,
   experienceYears: Number,
   createdAt: { type: Date, default: Date.now },
 });

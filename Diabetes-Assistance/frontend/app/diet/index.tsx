@@ -1,11 +1,13 @@
-import { View, Text, ScrollView, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
 import API from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 
 export default function DietScreen() {
   const [riskLevel, setRiskLevel] = useState("Level 1");
+  const router = useRouter();
 
   useEffect(() => {
     loadLatestAssessment();
@@ -35,38 +37,59 @@ export default function DietScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ================= HEADER CONFIG ================= */}
+      <Stack.Screen 
+        options={{
+          title: "My Diet Plan",
+          headerShown: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: '#f8fafc' },
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color="#0F172A" />
+            </TouchableOpacity>
+          ),
+        }} 
+      />
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.header}>
-          <Text style={styles.title}>Diet Plan</Text>
+          <View>
+            <Text style={styles.title}>Nutrition Plan</Text>
+            <Text style={styles.description}>
+              Target: 1500–1600 kcal | Low Glycemic Index
+            </Text>
+          </View>
           <View style={[styles.badge, badgeColor(riskLevel)]}>
-            <Text style={styles.badgeText}>{riskLevel} Profile</Text>
+            <Text style={styles.badgeText}>{riskLevel}</Text>
           </View>
         </View>
 
-        <Text style={styles.description}>
-          Daily 1500–1600 kcal plan focused on low glycemic index foods to stabilize sugar levels.
-        </Text>
-
-        {fullDietPlan.map((item, index) => (
-          <DietCard 
-            key={index}
-            time={item.time}
-            title={item.title}
-            items={item.items}
-            icon={item.icon}
-            color={item.color}
-            isLast={index === fullDietPlan.length - 1}
-          />
-        ))}
+        {/* Timeline Start */}
+        <View style={styles.timelineContainer}>
+          {fullDietPlan.map((item, index) => (
+            <DietCard 
+              key={index}
+              time={item.time}
+              title={item.title}
+              items={item.items}
+              icon={item.icon}
+              color={item.color}
+              isLast={index === fullDietPlan.length - 1}
+            />
+          ))}
+        </View>
 
         {/* Pro-Tip Section */}
         <View style={styles.tipCard}>
-          <Ionicons name="bulb" size={24} color="#f59e0b" />
-          <View style={styles.tipTextContent}>
-            <Text style={styles.tipTitle}>Quick Tip</Text>
-            <Text style={styles.tipText}>Use olive or mustard oil in small amounts and stay hydrated throughout the day.</Text>
+          <View style={styles.tipHeader}>
+            <Ionicons name="bulb" size={20} color="#92400e" />
+            <Text style={styles.tipTitle}>Expert Recommendation</Text>
           </View>
+          <Text style={styles.tipText}>
+            Use olive or mustard oil in small amounts. Stay hydrated by drinking at least 2.5–3 liters of water daily.
+          </Text>
         </View>
 
       </ScrollView>
@@ -81,7 +104,7 @@ function DietCard({ time, title, items, icon, color, isLast }: any) {
     <View style={styles.timelineRow}>
       <View style={styles.timelineLeading}>
         <View style={[styles.iconContainer, { backgroundColor: color }]}>
-          <Ionicons name={icon} size={20} color="white" />
+          <Ionicons name={icon} size={18} color="white" />
         </View>
         {!isLast && <View style={styles.timelineLine} />}
       </View>
@@ -89,12 +112,15 @@ function DietCard({ time, title, items, icon, color, isLast }: any) {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardTime}>{time}</Text>
+          <View style={styles.timeTag}>
+            <Ionicons name="time-outline" size={12} color="#64748b" style={{marginRight: 4}} />
+            <Text style={styles.cardTime}>{time}</Text>
+          </View>
         </View>
         <View style={styles.itemsList}>
           {items.map((item: string, index: number) => (
             <View key={index} style={styles.itemRow}>
-              <Text style={[styles.bullet, { color: color }]}>•</Text>
+              <Ionicons name="checkmark-circle" size={16} color={color} style={{marginRight: 8, marginTop: 2}} />
               <Text style={styles.itemText}>{item}</Text>
             </View>
           ))}
@@ -108,29 +134,33 @@ function DietCard({ time, title, items, icon, color, isLast }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafc" },
-  scrollContent: { padding: 20 },
+  backBtn: { marginLeft: 10, padding: 5 },
+  scrollContent: { padding: 20, paddingBottom: 40 },
   header: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    alignItems: "center",
-    marginBottom: 10,
-    marginTop: 10 
+    alignItems: "flex-start",
+    marginBottom: 25,
   },
-  title: { fontSize: 28, fontWeight: "800", color: "#1e293b" },
-  description: { fontSize: 14, color: "#64748b", marginBottom: 25, lineHeight: 20 },
-  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  badgeText: { color: "white", fontWeight: "700", fontSize: 12 },
+  title: { fontSize: 26, fontWeight: "800", color: "#0f172a" },
+  description: { fontSize: 14, color: "#64748b", marginTop: 4 },
+  badge: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12 },
+  badgeText: { color: "white", fontWeight: "700", fontSize: 12, textTransform: 'uppercase' },
   
-  // Timeline Styles
-  timelineRow: { flexDirection: "row", minHeight: 100 },
-  timelineLeading: { alignItems: "center", marginRight: 15 },
+  timelineContainer: { marginTop: 10 },
+  timelineRow: { flexDirection: "row", minHeight: 110 },
+  timelineLeading: { alignItems: "center", marginRight: 16 },
   iconContainer: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
+    width: 36, 
+    height: 36, 
+    borderRadius: 18, 
     justifyContent: "center", 
     alignItems: "center",
-    zIndex: 2
+    zIndex: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   timelineLine: { 
     width: 2, 
@@ -139,53 +169,51 @@ const styles = StyleSheet.create({
     marginVertical: 4 
   },
 
-  // Card Styles
   card: { 
     flex: 1, 
     backgroundColor: "white", 
-    borderRadius: 16, 
+    borderRadius: 20, 
     padding: 16, 
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f1f5f9'
   },
   cardHeader: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#f1f5f9",
-    paddingBottom: 8
+    paddingBottom: 10
   },
-  cardTitle: { fontSize: 16, fontWeight: "bold", color: "#1e293b" },
-  cardTime: { fontSize: 12, color: "#94a3b8", fontWeight: "600" },
-  itemsList: { gap: 6 },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#1e293b" },
+  timeTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  cardTime: { fontSize: 11, color: "#64748b", fontWeight: "600" },
+  itemsList: { gap: 10 },
   itemRow: { flexDirection: "row", alignItems: "flex-start" },
-  bullet: { fontSize: 18, marginRight: 8, marginTop: -2 },
-  itemText: { flex: 1, fontSize: 14, color: "#475569", lineHeight: 20 },
+  itemText: { flex: 1, fontSize: 14, color: "#475569", lineHeight: 20, fontWeight: '500' },
 
-  // Tip Card
   tipCard: {
-    flexDirection: "row",
     backgroundColor: "#fffbeb",
-    padding: 16,
-    borderRadius: 16,
+    padding: 20,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: "#fef3c7",
     marginTop: 10,
-    alignItems: "center"
   },
-  tipTextContent: { marginLeft: 12, flex: 1 },
-  tipTitle: { fontSize: 14, fontWeight: "bold", color: "#92400e" },
-  tipText: { fontSize: 13, color: "#b45309", marginTop: 2 }
+  tipHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  tipTitle: { fontSize: 15, fontWeight: "800", color: "#92400e", marginLeft: 8 },
+  tipText: { fontSize: 14, color: "#b45309", lineHeight: 20 }
 });
 
 function badgeColor(level: string) {
-  if (level === "Level 3") return { backgroundColor: "#dc2626" };
+  if (level === "Level 3") return { backgroundColor: "#ef4444" };
   if (level === "Level 2") return { backgroundColor: "#f59e0b" };
-  return { backgroundColor: "#16a34a" };
+  return { backgroundColor: "#10b981" };
 }

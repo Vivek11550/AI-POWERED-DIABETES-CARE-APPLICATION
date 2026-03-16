@@ -43,6 +43,10 @@ function AuthGate() {
     if (role === "doctor") {
       return <Redirect href="/dashboard/doctor" />;
     }
+
+   if (role === "admin") {
+      return <Redirect href="/admin/createDoctor" />;
+    }
   }
 
   return null;

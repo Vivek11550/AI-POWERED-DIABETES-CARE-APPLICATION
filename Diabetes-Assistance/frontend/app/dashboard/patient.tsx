@@ -1,23 +1,53 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from "react-native";
-import { useEffect, useState } from "react";
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView, 
+  ActivityIndicator, 
+  RefreshControl,
+  Dimensions // Added Dimensions
+} from "react-native";
+import { useEffect, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
 import { i18n } from "../../src/i18n/i18n";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import RiskHeader from "../../components/patientdasboard/RiskHeader";
 import RiskProgressBar from "../../components/patientdasboard/RiskProgressBar";
 import RiskDescription from "../../components/patientdasboard/RiskDescription";
 import RiskFactorList from "../../components/patientdasboard/RiskFactorList";
 
+// Calculate column width to prevent "half-visible" or stretching buttons
+const { width } = Dimensions.get('window');
+const COLUMN_WIDTH = (width - 40 - 12) / 2; // (Total Width - Padding - Gap) / 2
+
 export default function PatientDashboard() {
   const router = useRouter();
   const [chatId, setChatId] = useState<string | null>(null);
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      await Promise.all([loadLatestAssessment(), loadPatientChat()]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    Promise.all([loadLatestAssessment(), loadPatientChat()]).finally(() => setLoading(false));
+    fetchData();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData();
   }, []);
 
   const loadLatestAssessment = async () => {
@@ -29,6 +59,7 @@ export default function PatientDashboard() {
       setAssessment(res.data);
     } catch (err) {
       console.log("Assessment error", err);
+      setAssessment(null);
     }
   };
 
@@ -47,85 +78,110 @@ export default function PatientDashboard() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color="#0EA5E9" />
+        <Text style={styles.loadingText}>Loading health data...</Text>
       </View>
     );
   }
 
-  if (!assessment) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>No assessment found</Text>
-         <TouchableOpacity 
-            onPress={() => router.push("/recommendation/recommendation" as any)}
-            style={[styles.actionButton, { backgroundColor: "#4f46e5" }]}
-          >
-            <Text style={styles.buttonIcon}>🎯</Text>
-            <View>
-              <Text style={styles.buttonText}>perform health assesmet</Text>
-            </View>
-          </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const riskPercentage =
-    assessment.riskLevel === "Level 3" ? 85 : assessment.riskLevel === "Level 2" ? 55 : 25;
+  const riskPercentage = assessment?.riskLevel === "Level 3" ? 85 : assessment?.riskLevel === "Level 2" ? 55 : 25;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0EA5E9" />}
+      >
         
-        {/* Header Section */}
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>{i18n.t("patientDashboard")}</Text>
+        <View style={styles.topBar}>
+          <View>
+            <Text style={styles.greeting}>Hello, Patient</Text>
+            <Text style={styles.appTitle}> Your Dashboard</Text>
+          </View>
           <LanguageSwitcher />
         </View>
 
-        {/* Risk Card */}
-        <View style={styles.card}>
-          <RiskHeader level={assessment.riskLevel} />
-          <View style={styles.divider} />
-          <RiskProgressBar percentage={riskPercentage} />
-          <RiskDescription level={assessment.riskLevel} />
-        </View>
+        {!assessment ? (
+          <View style={styles.emptyCard}>
+            <Ionicons name="clipboard-outline" size={50} color="#94A3B8" />
+            <Text style={styles.emptyText}>No health assessment found</Text>
+            <TouchableOpacity 
+              onPress={() => router.push("/recommendation/recommendation" as any)}
+              style={styles.primaryAction}
+            >
+              <Text style={styles.primaryActionText}>Start Assessment Now</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Risk Analysis</Text>
+                <Ionicons name="pulse" size={20} color="#0EA5E9" />
+              </View>
+              <RiskHeader level={assessment.riskLevel} />
+              <View style={styles.divider} />
+              <RiskProgressBar percentage={riskPercentage} />
+              <RiskDescription level={assessment.riskLevel} />
+            </View>
 
-        {/* Detailed Stats */}
-        <Text style={styles.sectionLabel}>Your Health Metrics</Text>
-        <RiskFactorList assessment={assessment} />
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionLabel}>Your Health Metrics</Text>
+              <TouchableOpacity onPress={() => router.push("/recommendation/recommendation" as any)}>
+                <Text style={styles.retestLink}>Retest</Text>
+              </TouchableOpacity>
+            </View>
+            <RiskFactorList assessment={assessment} />
+          </>
+        )}
 
-        {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
+        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Quick Actions</Text>
+        
+        {/* Adjusted Grid Container */}
+        <View style={styles.buttonGrid}>
           <TouchableOpacity 
             onPress={() => router.push("/recommendation/recommendation" as any)}
-            style={[styles.actionButton, { backgroundColor: "#4f46e5" }]}
+            style={[styles.gridButton, { backgroundColor: "#4f46e5" }]}
           >
-            <Text style={styles.buttonIcon}>🎯</Text>
-            <View>
-              <Text style={styles.buttonText}>Personalized Tips</Text>
-              <Text style={styles.buttonSubtext}>Based on your health data</Text>
+            <View style={styles.iconCircle}>
+              <Ionicons name="flask" size={22} color="white" />
             </View>
+            <Text style={styles.buttonText}>Health Tips</Text>
           </TouchableOpacity>
 
           {chatId && (
             <TouchableOpacity
               onPress={() => router.push(`/chat?chatId=${chatId}` as any)}
-              style={[styles.actionButton, { backgroundColor: "#0ea5e9" }]}
+              style={[styles.gridButton, { backgroundColor: "#0ea5e9" }]}
             >
-              <Text style={styles.buttonIcon}>💬</Text>
-              <View>
-                <Text style={styles.buttonText}>{i18n.t("dashboard.chatTitle")}</Text>
-                <Text style={styles.buttonSubtext}>{i18n.t("dashboard.chatSub")}</Text>
+              <View style={styles.iconCircle}>
+                <Ionicons name="chatbubbles" size={22} color="white" />
               </View>
+              <Text style={styles.buttonText}>Consult Doctor</Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity 
             onPress={() => router.push("/profile/patient" as any)}
-            style={styles.outlineButton}
+            style={[styles.gridButton, { backgroundColor: "#64748b" }]}
           >
-            <Text style={styles.outlineButtonText}>View Full Profile</Text>
+            <View style={styles.iconCircle}>
+              <Ionicons name="person" size={22} color="white" />
+            </View>
+            <Text style={styles.buttonText}>My Profile</Text>
           </TouchableOpacity>
+
+         <TouchableOpacity 
+  onPress={() => router.push("/quiz/dashboard" as any)}
+  style={[styles.gridButton, { backgroundColor: "#10B981" }]} // Changed to Emerald
+>
+  <View style={styles.iconCircle}>
+    {/* Changed icon to puzzle-piece or library for a 'Knowledge' feel */}
+    <Ionicons name="extension-puzzle" size={22} color="white" />
+  </View>
+  <Text style={styles.buttonText}>Health Quiz</Text>
+</TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -136,7 +192,7 @@ export default function PatientDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc", // Light grayish-blue background
+    backgroundColor: "#F8FAFC",
   },
   scrollContent: {
     padding: 20,
@@ -146,83 +202,138 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F8FAFC"
   },
-  headerRow: {
+  loadingText: {
+    marginTop: 10,
+    color: "#64748B",
+    fontSize: 14,
+    fontWeight: "500"
+  },
+  topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 25,
     marginTop: 10,
   },
-  title: {
-    fontSize: 28,
+  greeting: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: 'uppercase'
+  },
+  appTitle: {
+    fontSize: 26,
     fontWeight: "800",
-    color: "#1e293b",
+    color: "#0F172A",
     letterSpacing: -0.5,
   },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 20,
     marginBottom: 20,
-    // Modern Shadow
-    shadowColor: "#000",
+    shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 5,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9'
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#334155'
   },
   divider: {
     height: 1,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#F1F5F9",
     marginVertical: 15,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
   sectionLabel: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#64748b",
-    marginBottom: 12,
+    color: "#94A3B8",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  buttonContainer: {
+  retestLink: {
+    color: '#0EA5E9',
+    fontWeight: '700',
+    fontSize: 13
+  },
+  buttonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12, // Consistent gap
     marginTop: 10,
-    gap: 12,
   },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 18,
-    borderRadius: 16,
-    gap: 15,
+  gridButton: {
+    // FIXED WIDTH DESIGN
+    width: COLUMN_WIDTH, 
+    padding: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  buttonIcon: {
-    fontSize: 24,
+  iconCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10
   },
   buttonText: {
     color: "white",
-    fontSize: 17,
-    fontWeight: "bold",
-  },
-  buttonSubtext: {
-    color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 13,
-  },
-  outlineButton: {
-    borderWidth: 1.5,
-    borderColor: "#cbd5e1",
-    padding: 15,
-    borderRadius: 16,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  outlineButtonText: {
-    color: "#475569",
-    fontWeight: "600",
     fontSize: 15,
+    fontWeight: "700",
+  },
+  emptyCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed'
   },
   emptyText: {
     fontSize: 16,
-    color: "#94a3b8",
+    color: "#64748B",
+    marginTop: 10,
+    fontWeight: '500'
+  },
+  primaryAction: {
+    backgroundColor: '#0EA5E9',
+    paddingHorizontal: 25,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 20
+  },
+  primaryActionText: {
+    color: '#FFF',
+    fontWeight: '700'
   }
 });
