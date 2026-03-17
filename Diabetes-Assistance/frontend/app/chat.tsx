@@ -6,10 +6,18 @@ import {
   FlatList,
   StyleSheet,
   Alert,
-  Image, Modal, TouchableWithoutFeedback
+  Image,
+  Modal,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
 } from "react-native";
-import { useEffect, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+// Import from the new library
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../src/services/api";
 import * as ImagePicker from "expo-image-picker";
@@ -19,101 +27,81 @@ type Message = {
   senderRole: "doctor" | "patient";
   message: string;
   imageUrl?: string;
+  createdAt: string;
 };
 
 export default function ChatScreen() {
-  const { patientId, chatId: chatIdParam } =
-    useLocalSearchParams<{
-      patientId?: string;
-      chatId?: string;
-    }>();
+  const router = useRouter();
+  const { patientId, chatId: chatIdParam } = useLocalSearchParams<{
+    patientId?: string;
+    chatId?: string;
+  }>();
 
   const [chatId, setChatId] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
   const [headerName, setHeaderName] = useState("Consultation");
-  const [senderRole, setSenderRole] =
-    useState<"doctor" | "patient">("doctor");
+  const [senderRole, setSenderRole] = useState<"doctor" | "patient">("doctor");
   const [loadingChat, setLoadingChat] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Use a ref to always have the latest chatId for the interval
+  const chatIdRef = useRef("");
+
+  /* ---------------- INIT & REFRESH LOGIC ---------------- */
 
   useEffect(() => {
     initChat();
+
+    // Start polling for new messages every 5 seconds
+    const interval = setInterval(() => {
+      if (chatIdRef.current) {
+        loadMessages(chatIdRef.current);
+      }
+    }, 5000);
+
+    // CLEANUP: This stops the recursive call when the chat is closed/unmounted
+    return () => clearInterval(interval);
   }, []);
 
-  const confirmDelete = (messageId: string) => {
-    Alert.alert(
-      "Delete message",
-      "Are you sure you want to delete this message?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: () => deleteMessage(messageId) },
-      ]
-    );
-  };
-
-  /* ---------------- INIT CHAT ---------------- */
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    if (chatId) await loadMessages(chatId);
+    setRefreshing(false);
+  }, [chatId]);
 
   const initChat = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
       const role = await AsyncStorage.getItem("role");
-
       if (!token || !role) return;
 
       setSenderRole(role as "doctor" | "patient");
 
-      /* ===============================
-         PATIENT OPENING CHAT
-      =============================== */
       if (role === "patient" && chatIdParam) {
         setChatId(chatIdParam);
-
-        // 1️⃣ get chat to know doctorId
+        chatIdRef.current = chatIdParam;
         const chatRes = await API.get("/chat/patient", {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         const doctorId = chatRes.data.doctorId;
-
-        // 2️⃣ fetch doctor profile
-        const doctorProfile = await API.get(
-          `/profile/doctor/${doctorId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        setHeaderName(
-          `Dr. ${doctorProfile.data.fullName} (${doctorProfile.data.specialization})`
-        );
-
+        const doctorProfile = await API.get(`/profile/doctor/${doctorId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // setHeaderName(`Dr. ${doctorProfile.data.fullName}`);
+          setHeaderName(' consulting with Doctor ' );
         await loadMessages(chatIdParam);
-        return;
-      }
-
-      /* ===============================
-         DOCTOR OPENING CHAT
-      =============================== */
-      if (role === "doctor" && patientId) {
-        // fetch patient profile
-        const patientProfile = await API.get(
-          `/profile/patient/${patientId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        setHeaderName(patientProfile.data.fullName);
-
-        // create or get chat
-        const chatRes = await API.post(
-          "/chat/start",
-          { patientId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
+      } else if (role === "doctor" && patientId) {
+        const patientProfile = await API.get(`/profile/patient/${patientId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setHeaderName(patientProfile.data.fullName + " "+'(patient)');
+        const chatRes = await API.post("/chat/start", { patientId }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setChatId(chatRes.data._id);
+        chatIdRef.current = chatRes.data._id;
         await loadMessages(chatRes.data._id);
       }
     } catch (error) {
@@ -123,296 +111,224 @@ export default function ChatScreen() {
     }
   };
 
-  /* ---------------- LOAD MESSAGES ---------------- */
-
   const loadMessages = async (id: string) => {
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) return;
-
       const res = await API.get(`/chat/${id}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      // Simple logic to only update state if message count changes
       setMessages(res.data);
     } catch (error) {
       console.log("Load messages error:", error);
     }
   };
 
-  /* ---------------- SEND MESSAGE ---------------- */
-
   const sendMessage = async () => {
-    if (!text.trim()) return;
-    if (!chatId) return;
-
+    if (!text.trim() || !chatId) return;
     try {
       const token = await AsyncStorage.getItem("token");
-      if (!token) return;
-
-      await API.post(
-        `/chat/${chatId}/message`,
-        {
-          message: text,
-          senderRole,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setText("");
+      const currentText = text;
+      setText(""); // Clear immediately for better UX
+      await API.post(`/chat/${chatId}/message`, { message: currentText, senderRole }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       loadMessages(chatId);
     } catch (error) {
-      console.log("Send message error:", error);
+      console.log("Send error:", error);
+      alert("Failed to send message");
     }
   };
-
-  const sendImage = async (uri: any) => {
-    const token = await AsyncStorage.getItem("token");
-
-    const formData = new FormData();
-
-    // For React Native, FormData accepts a file object with uri, name, and type
-    // @ts-ignore
-    formData.append("image", {
-      uri: uri,
-      name: "chat.jpg",
-      type: "image/jpeg",
-    } as any);
-
-    formData.append("senderRole", senderRole);
-
-    await API.post(`/chat/${chatId}/message`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    loadMessages(chatId);
-  };
-
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
     });
-
     if (!result.canceled) {
-      sendImage(result.assets[0].uri);
-    }
-  };
-
-  /* ---------------- DELETE MESSAGE ---------------- */
-  const deleteMessage = async (messageId: string) => {
-    try {
       const token = await AsyncStorage.getItem("token");
-      if (!token) return;
-
-      await API.delete(`/chat/message/${messageId}`, {
+      const formData = new FormData();
+      // @ts-ignore
+      formData.append("image", {
+        uri: result.assets[0].uri,
+        name: "chat.jpg",
+        type: "image/jpeg",
+      } as any);
+      formData.append("senderRole", senderRole);
+      await API.post(`/chat/${chatId}/message`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
-
-      loadMessages(chatId); // reload chat
-    } catch (error) {
-      console.log("Delete message error:", error);
+      loadMessages(chatId);
     }
   };
-
-  /* ---------------- RENDER MESSAGE ---------------- */
 
   const renderItem = ({ item }: { item: Message }) => {
     const isMe = item.senderRole === senderRole;
-
-
     return (
-      <TouchableOpacity
-        onLongPress={() => {
-          if (isMe) confirmDelete(item._id);
-        }}
-        style={[
-          styles.messageBubble,
-          isMe ? styles.myBubble : styles.otherBubble,
-        ]}
-      >
-        <Text
-          style={[
-            styles.messageText,
-            isMe && { color: "white" },
-          ]}
-        >
-          {item.message}
-        </Text>
-        {item?.imageUrl && (
-          <TouchableOpacity
-            onPress={() =>
-              setSelectedImage(`${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}`)
+      <View style={[styles.messageWrapper, isMe ? styles.myWrapper : styles.otherWrapper]}>
+        <TouchableOpacity
+          onLongPress={() => isMe && Alert.alert("Delete", "Delete message?", [
+            { text: "Cancel" },
+            { text: "Delete", onPress: () => API.delete(`/chat/message/${item._id}`, {
+                headers: { Authorization: `Bearer ${AsyncStorage.getItem("token")}` }
+              }).then(() => loadMessages(chatId))
             }
-          >
-            <Image
-              source={{ uri: `${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}` }}
-              style={{
-                width: 200,
-                height: 200,
-                borderRadius: 10,
-                marginTop: 5,
-              }}
-            />
-          </TouchableOpacity>
-        )}
-      </TouchableOpacity>
+          ])}
+          style={[styles.messageBubble, isMe ? styles.myBubble : styles.otherBubble]}
+        >
+          {item.message ? (
+            <Text style={[styles.messageText, isMe ? styles.myText : styles.otherText]}>
+              {item.message}
+            </Text>
+          ) : null}
+          {item?.imageUrl && (
+            <TouchableOpacity onPress={() => setSelectedImage(`${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}`)}>
+              <Image
+                source={{ uri: `${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}` }}
+                style={styles.chatImage}
+              />
+            </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+      </View>
     );
   };
 
-
-
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          Consultation with Doctor
-        </Text>
-      </View>
+    // Edges='bottom' ensures we don't interfere with the Header (Stack.Screen)
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <Stack.Screen 
+        options={{
+          headerShown: true, // Explicitly enable the header
+          title: headerName,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: '#FFFFFF' },
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
+              <Ionicons name="chevron-back" size={28} color="#0F172A" />
+            </TouchableOpacity>
+          ),
+        }} 
+      />
 
-      <Modal
-        visible={!!selectedImage}
-        transparent={true}
-        animationType="fade"
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback onPress={() => setSelectedImage(null)}>
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0,0,0,0.9)",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0EA5E9" />
+          }
+        />
+
+        <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={pickImage} style={styles.iconBtn}>
+            <Ionicons name="camera-outline" size={26} color="#64748B" />
+          </TouchableOpacity>
+          <TextInput
+            placeholder="Type your message..."
+            value={text}
+            onChangeText={setText}
+            style={styles.input}
+            multiline
+          />
+          <TouchableOpacity
+            onPress={sendMessage}
+            disabled={!text.trim() || !chatId}
+            style={[styles.sendBtn, (!text.trim() || !chatId) && styles.disabledSend]}
           >
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{
-                  width: "90%",
-                  height: "70%",
-                  resizeMode: "contain",
-                }}
-              />
-            )}
+            <Ionicons name="send" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* Image Modal */}
+      <Modal visible={!!selectedImage} transparent={true} animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setSelectedImage(null)}>
+          <View style={styles.modalBg}>
+            <Image source={{ uri: selectedImage! }} style={styles.fullImage} />
+            <TouchableOpacity style={styles.closeModal} onPress={() => setSelectedImage(null)}>
+              <Ionicons name="close-circle" size={40} color="white" />
+            </TouchableOpacity>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      {/* CHAT LIST */}
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 10 }}
-        ListEmptyComponent={
-          !loadingChat ? (
-            <Text style={{ textAlign: "center", color: "gray" }}>
-              No messages yet
-            </Text>
-          ) : null
-        }
-      />
-
-      {/* INPUT */}
-      <View style={styles.inputRow}>
-
-        <TouchableOpacity onPress={pickImage}>
-          <Text style={{ fontSize: 22 }}>📷</Text>
-        </TouchableOpacity>
-
-
-        <TextInput
-          placeholder="Type message..."
-          value={text}
-          onChangeText={setText}
-          style={styles.input}
-        />
-
-        <TouchableOpacity
-          onPress={sendMessage}
-          disabled={!chatId}
-          style={[
-            styles.sendBtn,
-            !chatId && { opacity: 0.5 },
-          ]}
-        >
-          <Text style={styles.sendText}>Send</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
-/* ---------------- STYLES ---------------- */
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  header: {
-
-    padding: 35,
-    backgroundColor: "#2563eb",
-  },
-  headerTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  listContent: { padding: 16, paddingBottom: 20 },
+  messageWrapper: { marginBottom: 12, width: '100%', flexDirection: 'row' },
+  myWrapper: { justifyContent: 'flex-end' },
+  otherWrapper: { justifyContent: 'flex-start' },
   messageBubble: {
-    maxWidth: "75%",
+    maxWidth: "80%",
     padding: 12,
-    borderRadius: 10,
-    marginVertical: 6,
+    borderRadius: 18,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
   },
   myBubble: {
-    backgroundColor: "#2563eb",
-    alignSelf: "flex-end",
-    borderTopRightRadius: 0,
+    backgroundColor: "#0EA5E9",
+    borderBottomRightRadius: 2,
   },
   otherBubble: {
-    backgroundColor: "#e5e7eb",
-    alignSelf: "flex-start",
-    borderTopLeftRadius: 0,
+    backgroundColor: "#FFFFFF",
+    borderBottomLeftRadius: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9'
   },
-  messageText: {
-    fontSize: 15,
-  },
-  inputRow: {
+  messageText: { fontSize: 15, lineHeight: 20 },
+  myText: { color: "#FFFFFF", fontWeight: '500' },
+  otherText: { color: "#1E293B" },
+  chatImage: { width: 220, height: 220, borderRadius: 12, marginTop: 4 },
+  inputContainer: {
     flexDirection: "row",
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: "#e5e7eb",
+    alignItems: "center",
+    padding: 12,
     backgroundColor: "white",
-    marginBottom: 15
+    borderTopWidth: 1,
+    borderColor: "#F1F5F9",
+    paddingBottom: Platform.OS === 'ios' ? 20 : 12
   },
   input: {
     flex: 1,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginHorizontal: 10,
+    fontSize: 15,
+    maxHeight: 100,
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    height: 40,
+    borderColor: '#E2E8F0'
   },
+  iconBtn: { padding: 4 },
   sendBtn: {
-    marginLeft: 10,
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 20,
+    backgroundColor: "#0EA5E9",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
-    borderRadius: 20,
+    alignItems: "center",
+    elevation: 2,
   },
-  sendText: {
-    color: "white",
-    fontWeight: "bold",
-  },
+  disabledSend: { backgroundColor: "#94A3B8" },
+  modalBg: { flex: 1, backgroundColor: "black", justifyContent: "center", alignItems: "center" },
+  fullImage: { width: "100%", height: "80%", resizeMode: "contain" },
+  closeModal: { position: 'absolute', top: 50, right: 20 },
 });

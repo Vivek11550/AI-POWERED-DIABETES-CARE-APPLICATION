@@ -4,9 +4,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
 } from "react-native";
+// Import from safe-area-context for granular control
+import { SafeAreaView } from "react-native-safe-area-context"; 
 import Animated, { FadeInRight, FadeIn } from "react-native-reanimated";
 import { diabetesQuiz } from "@/src/constants/diabetesQuiz";
 import API from "@/src/services/api";
@@ -86,7 +87,7 @@ export default function QuizScreen() {
 
   if (showResult) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <Animated.View entering={FadeIn} style={styles.resultContainer}>
           <View style={styles.resultCard}>
             <View style={styles.successIconCircle}>
@@ -109,8 +110,21 @@ export default function QuizScreen() {
   /* ================= QUIZ SCREEN ================= */
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Health Quiz", headerShadowVisible: false }} />
+    // FIX: Set edges to exclude 'top' so Stack.Screen header doesn't get pushed into notch
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <Stack.Screen 
+        options={{ 
+          title: "Health Quiz", 
+          headerShown: true, 
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: '#F8FAFC' },
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 0 }}>
+              <Ionicons name="chevron-back" size={28} color="#0F172A" />
+            </TouchableOpacity>
+          )
+        }} 
+      />
 
       {/* Header Info */}
       <View style={styles.header}>
@@ -173,7 +187,7 @@ export default function QuizScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { padding: 24, paddingBottom: 0 },
+  header: { padding: 24, paddingBottom: 10 },
   counter: { fontSize: 12, fontWeight: "800", color: "#94A3B8", letterSpacing: 1, marginBottom: 12 },
   progressTrack: { height: 8, backgroundColor: "#E2E8F0", borderRadius: 4, overflow: "hidden" },
   progressBar: { height: "100%", backgroundColor: "#10B981" },
@@ -216,7 +230,6 @@ const styles = StyleSheet.create({
   disabledBtn: { backgroundColor: "#94A3B8", shadowOpacity: 0 },
   nextButtonText: { color: "white", fontSize: 18, fontWeight: "700" },
 
-  // Result UI
   resultContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
   resultCard: {
     backgroundColor: 'white',

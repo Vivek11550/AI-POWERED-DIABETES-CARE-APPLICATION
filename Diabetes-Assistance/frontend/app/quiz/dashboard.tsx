@@ -4,17 +4,15 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   ScrollView,
-  Dimensions,
 } from "react-native";
+// Import from safe-area-context for better control
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import API from "@/src/services/api";
 import { useAuth } from "@/src/context/AuthContext";
-
-const { width } = Dimensions.get("window");
 
 export default function QuizDashboard() {
   const router = useRouter();
@@ -53,7 +51,9 @@ export default function QuizDashboard() {
     : 0;
 
   return (
-    <SafeAreaView style={styles.container}>
+    // edges={['bottom', 'left', 'right']} ensures we don't double-pad the top notch 
+    // which is already handled by Stack.Screen
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
@@ -61,9 +61,10 @@ export default function QuizDashboard() {
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
+          headerTitleStyle: { color: '#0F172A', fontWeight: '700' },
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={24} color="#0F172A" />
+              <Ionicons name="chevron-back" size={28} color="#0F172A" />
             </TouchableOpacity>
           ),
         }} 
@@ -90,7 +91,6 @@ export default function QuizDashboard() {
           </View>
         ) : (
           <>
-            {/* Score Overview Card */}
             <View style={styles.mainCard}>
               <Text style={styles.scoreLabel}>Current Proficiency</Text>
               <View style={styles.percentageRow}>
@@ -102,7 +102,6 @@ export default function QuizDashboard() {
                 </View>
               </View>
 
-              {/* Custom Progress Bar */}
               <View style={styles.progressContainer}>
                 <View style={[styles.progressBar, { width: `${percentage}%` }]} />
               </View>
@@ -144,13 +143,12 @@ export default function QuizDashboard() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8FAFC" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  backBtn: { marginLeft: 10, padding: 5 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F8FAFC" },
+  backBtn: { marginLeft: 0 },
   scrollContent: { padding: 24 },
   title: { fontSize: 28, fontWeight: "800", color: "#0F172A" },
   subtitle: { fontSize: 15, color: "#64748B", marginTop: 4, marginBottom: 25, lineHeight: 22 },
   
-  // Empty State
   emptyCard: {
     backgroundColor: 'white',
     borderRadius: 24,
@@ -160,6 +158,8 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: '#F1F5F9'
   },
   iconCircle: {
     width: 80,
@@ -173,7 +173,6 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 20, fontWeight: '700', color: '#1E293B' },
   emptySub: { fontSize: 14, color: '#64748B', textAlign: 'center', marginTop: 10, marginBottom: 25, lineHeight: 20 },
 
-  // Main Card
   mainCard: {
     backgroundColor: "white",
     borderRadius: 24,
@@ -183,6 +182,8 @@ const styles = StyleSheet.create({
     shadowColor: "#0F172A",
     shadowOpacity: 0.08,
     shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9'
   },
   scoreLabel: { fontSize: 13, fontWeight: "700", color: "#94A3B8", textTransform: 'uppercase', letterSpacing: 1 },
   percentageRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },

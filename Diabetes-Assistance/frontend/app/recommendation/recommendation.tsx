@@ -1,52 +1,81 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView, 
+  Dimensions 
+} from "react-native";
 import { i18n } from "../../src/i18n/i18n";
-import { useRouter } from "expo-router";
+import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons"; 
+
+// Calculate width for consistent 2-column grid
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 40 - 15) / 2; // (Total Width - Padding - Gap) / 2
 
 export default function RecommendationDashboard() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {/* ================= HEADER CONFIG ================= */}
+      <Stack.Screen 
+        options={{
+          title: "Care Recommendations",
+          headerShown: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: '#F8FAFC' },
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color="#0F172A" />
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity onPress={() => router.push("/profile/patient" as any)}>
+               <Ionicons name="person-circle-outline" size={28} color="#0EA5E9" />
+            </TouchableOpacity>
+          )
+        }} 
+      />
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Header Section */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Recommendations</Text>
-          <TouchableOpacity onPress={() => router.push("/profile/patient" as any)}>
-             <Ionicons name="person-circle-outline" size={32} color="#2563eb" />
-          </TouchableOpacity>
+        <View style={styles.topHeader}>
+          <Text style={styles.title}>Health Guidance</Text>
+          <Text style={styles.subtitle}>Personalized steps to manage your diabetic health effectively.</Text>
         </View>
 
-        <Text style={styles.subtitle}>Personalized guidance based on your health assessment.</Text>
-
-        {/* Primary Health Assessment - Highlighted Card */}
+        {/* Primary Health Assessment - The Highlighted Action */}
         <TouchableOpacity
+          activeOpacity={0.9}
           onPress={() => router.push("/assessment" as any)}
           style={styles.mainCard}
         >
-          <View style={styles.iconCircle}>
-            <Ionicons name="clipboard-outline" size={28} color="#fff" />
+          <View style={styles.mainCardIconBox}>
+            <Ionicons name="analytics" size={28} color="#fff" />
           </View>
           <View style={styles.cardTextContainer}>
             <Text style={styles.mainCardTitle}>{i18n.t("dashboard.assessmentTitle")}</Text>
             <Text style={styles.mainCardSubtext}>{i18n.t("dashboard.assessmentSub")}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
+          <Ionicons name="arrow-forward-circle" size={32} color="rgba(255,255,255,0.6)" />
         </TouchableOpacity>
 
-        {/* Grid Section for Recommendations */}
+        <Text style={styles.sectionLabel}>Educational Modules</Text>
+
+        {/* Responsive Grid Section */}
         <View style={styles.gridContainer}>
           
           {/* Diet Card */}
           <TouchableOpacity
             onPress={() => router.push("/diet" as any)}
-            style={[styles.gridCard, { borderLeftColor: "#16a34a" }]}
+            style={[styles.gridCard, { borderTopColor: "#10B981" }]}
           >
-            <Ionicons name="restaurant-outline" size={30} color="#16a34a" />
+            <View style={[styles.miniIconBg, { backgroundColor: '#ECFDF5' }]}>
+               <Ionicons name="restaurant" size={22} color="#10B981" />
+            </View>
             <Text style={styles.gridTitle}>{i18n.t("dashboard.dietTitle")}</Text>
             <Text style={styles.gridSubtext} numberOfLines={2}>
               {i18n.t("dashboard.dietSub")}
@@ -56,9 +85,11 @@ export default function RecommendationDashboard() {
           {/* Exercise Card */}
           <TouchableOpacity
             onPress={() => router.push("/exercise" as any)}
-            style={[styles.gridCard, { borderLeftColor: "#f59e0b" }]}
+            style={[styles.gridCard, { borderTopColor: "#F59E0B" }]}
           >
-            <Ionicons name="fitness-outline" size={30} color="#f59e0b" />
+            <View style={[styles.miniIconBg, { backgroundColor: '#FFFBEB' }]}>
+               <Ionicons name="fitness" size={22} color="#F59E0B" />
+            </View>
             <Text style={styles.gridTitle}>{i18n.t("dashboard.exerciseTitle")}</Text>
             <Text style={styles.gridSubtext} numberOfLines={2}>
               {i18n.t("dashboard.exerciseSub")}
@@ -67,24 +98,28 @@ export default function RecommendationDashboard() {
 
           {/* Foot Care Card */}
           <TouchableOpacity
-            onPress={() => router.push("/footcare" as any)} // Keeping your existing functionality
-            style={[styles.gridCard, { borderLeftColor: "#0ea5e9" }]}
+            onPress={() => router.push("/footcare" as any)}
+            style={[styles.gridCard, { borderTopColor: "#0EA5E9" }]}
           >
-            <Ionicons name="medkit-outline" size={30} color="#0ea5e9" />
+            <View style={[styles.miniIconBg, { backgroundColor: '#F0F9FF' }]}>
+               <Ionicons name="body" size={22} color="#0EA5E9" />
+            </View>
             <Text style={styles.gridTitle}>Foot Care</Text>
             <Text style={styles.gridSubtext} numberOfLines={2}>
               Essential daily checks and routines.
             </Text>
           </TouchableOpacity>
 
-          {/* Profile Card */}
+          {/* Health Knowledge / Quiz Card */}
           <TouchableOpacity
-            onPress={() => router.push("/profile/patient" as any)}
-            style={[styles.gridCard, { borderLeftColor: "#64748b" }]}
+            onPress={() => router.push("/quiz/dashboard" as any)}
+            style={[styles.gridCard, { borderTopColor: "#8B5CF6" }]}
           >
-            <Ionicons name="settings-outline" size={30} color="#64748b" />
-            <Text style={styles.gridTitle}>Profile</Text>
-            <Text style={styles.gridSubtext}>Manage your health settings.</Text>
+            <View style={[styles.miniIconBg, { backgroundColor: '#F5F3FF' }]}>
+               <Ionicons name="extension-puzzle" size={22} color="#8B5CF6" />
+            </View>
+            <Text style={styles.gridTitle}>Knowledge</Text>
+            <Text style={styles.gridSubtext}>Test your diabetes awareness score.</Text>
           </TouchableOpacity>
 
         </View>
@@ -96,52 +131,52 @@ export default function RecommendationDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
-    marginTop: 10,
+    backgroundColor: "#F8FAFC",
   },
+  backBtn: { marginLeft: 10, padding: 5 },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-    marginTop: 10,
-  },
-  backButton: {
-    padding: 4,
+  topHeader: {
+    marginBottom: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: "800",
-    color: "#1e293b",
-    letterSpacing: -0.5,
+    color: "#0F172A",
   },
   subtitle: {
-    fontSize: 15,
-    color: "#64748b",
-    marginBottom: 25,
+    fontSize: 14,
+    color: "#64748B",
+    marginTop: 5,
     lineHeight: 20,
   },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#94A3B8",
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 15,
+  },
   mainCard: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#0EA5E9",
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 20,
-    shadowColor: "#2563eb",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 8,
+    padding: 24,
+    borderRadius: 24,
+    marginBottom: 25,
+    shadowColor: "#0EA5E9",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  iconCircle: {
+  mainCardIconBox: {
     backgroundColor: "rgba(255,255,255,0.2)",
     padding: 12,
-    borderRadius: 14,
+    borderRadius: 16,
   },
   cardTextContainer: {
     flex: 1,
@@ -150,12 +185,13 @@ const styles = StyleSheet.create({
   mainCardTitle: {
     color: "white",
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "800",
   },
   mainCardSubtext: {
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.9)",
     fontSize: 13,
-    marginTop: 2,
+    marginTop: 4,
+    fontWeight: '500'
   },
   gridContainer: {
     flexDirection: "row",
@@ -165,28 +201,34 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     backgroundColor: "white",
-    width: "47%", // Nearly half width for two columns
-    padding: 16,
-    borderRadius: 18,
-    borderLeftWidth: 5,
-    // Shadow
-    shadowColor: "#000",
+    width: CARD_WIDTH, 
+    padding: 18,
+    borderRadius: 20,
+    borderTopWidth: 4, // Changed from left to top for a more modern header look
+    shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
-    marginBottom: 5,
+  },
+  miniIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   gridTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#1e293b",
-    marginTop: 12,
-    marginBottom: 4,
+    color: "#1E293B",
   },
   gridSubtext: {
     fontSize: 12,
-    color: "#64748b",
-    lineHeight: 16,
+    color: "#64748B",
+    lineHeight: 18,
+    marginTop: 4,
+    fontWeight: '500'
   },
 });

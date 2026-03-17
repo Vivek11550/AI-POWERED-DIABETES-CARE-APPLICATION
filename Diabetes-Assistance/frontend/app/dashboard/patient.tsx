@@ -174,7 +174,7 @@ export default function PatientDashboard() {
 
          <TouchableOpacity 
   onPress={() => router.push("/quiz/dashboard" as any)}
-  style={[styles.gridButton, { backgroundColor: "#10B981" }]} // Changed to Emerald
+  style={[styles.gridButton, { backgroundColor: "#10B981" }]} 
 >
   <View style={styles.iconCircle}>
     {/* Changed icon to puzzle-piece or library for a 'Knowledge' feel */}
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   retestLink: {
     color: '#0EA5E9',
     fontWeight: '700',
-    fontSize: 13
+    fontSize: 18
   },
   buttonGrid: {
     flexDirection: 'row',

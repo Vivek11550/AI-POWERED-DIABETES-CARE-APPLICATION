@@ -2,6 +2,7 @@ import { Stack, Redirect, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { LanguageProvider } from "@/src/context/LanguageContext";
 import { AuthProvider, useAuth } from "@/src/context/AuthContext";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function AuthGate() {
   const { isAuthenticated, isLoading, role, profileCompleted } = useAuth();
@@ -55,6 +56,7 @@ function AuthGate() {
 function AppLayout() {
   return (
     <>
+    
       <AuthGate />
       <Stack screenOptions={{ headerShown: false }} />
     </>
