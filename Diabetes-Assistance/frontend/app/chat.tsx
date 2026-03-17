@@ -13,7 +13,6 @@ import {
   Platform,
   RefreshControl,
 } from "react-native";
-// Import from the new library
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
@@ -46,22 +45,15 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Use a ref to always have the latest chatId for the interval
   const chatIdRef = useRef("");
-
-  /* ---------------- INIT & REFRESH LOGIC ---------------- */
 
   useEffect(() => {
     initChat();
-
-    // Start polling for new messages every 5 seconds
     const interval = setInterval(() => {
       if (chatIdRef.current) {
         loadMessages(chatIdRef.current);
       }
     }, 5000);
-
-    // CLEANUP: This stops the recursive call when the chat is closed/unmounted
     return () => clearInterval(interval);
   }, []);
 
@@ -89,17 +81,18 @@ export default function ChatScreen() {
         const doctorProfile = await API.get(`/profile/doctor/${doctorId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // setHeaderName(`Dr. ${doctorProfile.data.fullName}`);
-          setHeaderName(' consulting with Doctor ' );
+        setHeaderName(`Dr. ${doctorProfile.data.fullName}`);
         await loadMessages(chatIdParam);
       } else if (role === "doctor" && patientId) {
         const patientProfile = await API.get(`/profile/patient/${patientId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setHeaderName(patientProfile.data.fullName + " "+'(patient)');
-        const chatRes = await API.post("/chat/start", { patientId }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        setHeaderName(patientProfile.data.fullName);
+        const chatRes = await API.post(
+          "/chat/start",
+          { patientId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         setChatId(chatRes.data._id);
         chatIdRef.current = chatRes.data._id;
         await loadMessages(chatRes.data._id);
@@ -118,7 +111,6 @@ export default function ChatScreen() {
       const res = await API.get(`/chat/${id}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Simple logic to only update state if message count changes
       setMessages(res.data);
     } catch (error) {
       console.log("Load messages error:", error);
@@ -130,54 +122,77 @@ export default function ChatScreen() {
     try {
       const token = await AsyncStorage.getItem("token");
       const currentText = text;
-      setText(""); // Clear immediately for better UX
-      await API.post(`/chat/${chatId}/message`, { message: currentText, senderRole }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      setText("");
+      await API.post(
+        `/chat/${chatId}/message`,
+        { message: currentText, senderRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       loadMessages(chatId);
     } catch (error) {
-      console.log("Send error:", error);
-      alert("Failed to send message");
+      Alert.alert("Error", "Failed to send message");
     }
   };
 
+  /* ---------------- PICK IMAGE (FIXED) ---------------- */
   const pickImage = async () => {
+    // FIX: Using the non-deprecated MediaType array string
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'], 
       quality: 0.7,
     });
+
     if (!result.canceled) {
       const token = await AsyncStorage.getItem("token");
       const formData = new FormData();
+
       // @ts-ignore
       formData.append("image", {
         uri: result.assets[0].uri,
         name: "chat.jpg",
         type: "image/jpeg",
       } as any);
+
       formData.append("senderRole", senderRole);
-      await API.post(`/chat/${chatId}/message`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      loadMessages(chatId);
+
+      try {
+        await API.post(`/chat/${chatId}/message`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        loadMessages(chatId);
+      } catch (error) {
+        Alert.alert("Error", "Failed to upload image");
+      }
     }
   };
 
   const renderItem = ({ item }: { item: Message }) => {
     const isMe = item.senderRole === senderRole;
+    const deleteMessage = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        await API.delete(`/chat/message/${item._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        loadMessages(chatId);
+      } catch (error) {
+        Alert.alert("Error", "Could not delete message");
+      }
+    };
+
     return (
       <View style={[styles.messageWrapper, isMe ? styles.myWrapper : styles.otherWrapper]}>
         <TouchableOpacity
-          onLongPress={() => isMe && Alert.alert("Delete", "Delete message?", [
-            { text: "Cancel" },
-            { text: "Delete", onPress: () => API.delete(`/chat/message/${item._id}`, {
-                headers: { Authorization: `Bearer ${AsyncStorage.getItem("token")}` }
-              }).then(() => loadMessages(chatId))
-            }
-          ])}
+          onLongPress={() =>
+            isMe &&
+            Alert.alert("Delete", "Delete message?", [
+              { text: "Cancel" },
+              { text: "Delete", onPress: deleteMessage },
+            ])
+          }
           style={[styles.messageBubble, isMe ? styles.myBubble : styles.otherBubble]}
         >
           {item.message ? (
@@ -185,10 +200,15 @@ export default function ChatScreen() {
               {item.message}
             </Text>
           ) : null}
-          {item?.imageUrl && (
-            <TouchableOpacity onPress={() => setSelectedImage(`${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}`)}>
+
+          {item.imageUrl && (
+            <TouchableOpacity
+              onPress={() =>
+                setSelectedImage(`${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item.imageUrl}`)
+              }
+            >
               <Image
-                source={{ uri: `${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item?.imageUrl}` }}
+                source={{ uri: `${process.env.EXPO_PUBLIC_CHAT_IMAGE_URL}${item.imageUrl}` }}
                 style={styles.chatImage}
               />
             </TouchableOpacity>
@@ -199,23 +219,23 @@ export default function ChatScreen() {
   };
 
   return (
-    // Edges='bottom' ensures we don't interfere with the Header (Stack.Screen)
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <Stack.Screen 
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
+      <Stack.Screen
         options={{
-          headerShown: true, // Explicitly enable the header
+          headerShown: true,
           title: headerName,
           headerShadowVisible: false,
-          headerStyle: { backgroundColor: '#FFFFFF' },
+          headerStyle: { backgroundColor: "#FFFFFF" },
+          headerTitleStyle: { fontWeight: '700', color: '#0F172A' },
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 5 }}>
               <Ionicons name="chevron-back" size={28} color="#0F172A" />
             </TouchableOpacity>
           ),
-        }} 
+        }}
       />
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         style={{ flex: 1 }}
@@ -235,6 +255,7 @@ export default function ChatScreen() {
           <TouchableOpacity onPress={pickImage} style={styles.iconBtn}>
             <Ionicons name="camera-outline" size={26} color="#64748B" />
           </TouchableOpacity>
+
           <TextInput
             placeholder="Type your message..."
             value={text}
@@ -242,6 +263,7 @@ export default function ChatScreen() {
             style={styles.input}
             multiline
           />
+
           <TouchableOpacity
             onPress={sendMessage}
             disabled={!text.trim() || !chatId}
@@ -252,11 +274,10 @@ export default function ChatScreen() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Image Modal */}
-      <Modal visible={!!selectedImage} transparent={true} animationType="fade">
+      <Modal visible={!!selectedImage} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setSelectedImage(null)}>
           <View style={styles.modalBg}>
-            <Image source={{ uri: selectedImage! }} style={styles.fullImage} />
+            {selectedImage && <Image source={{ uri: selectedImage }} style={styles.fullImage} />}
             <TouchableOpacity style={styles.closeModal} onPress={() => setSelectedImage(null)}>
               <Ionicons name="close-circle" size={40} color="white" />
             </TouchableOpacity>
@@ -270,9 +291,9 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8FAFC" },
   listContent: { padding: 16, paddingBottom: 20 },
-  messageWrapper: { marginBottom: 12, width: '100%', flexDirection: 'row' },
-  myWrapper: { justifyContent: 'flex-end' },
-  otherWrapper: { justifyContent: 'flex-start' },
+  messageWrapper: { marginBottom: 12, width: "100%", flexDirection: "row" },
+  myWrapper: { justifyContent: "flex-end" },
+  otherWrapper: { justifyContent: "flex-start" },
   messageBubble: {
     maxWidth: "80%",
     padding: 12,
@@ -282,18 +303,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 5,
   },
-  myBubble: {
-    backgroundColor: "#0EA5E9",
-    borderBottomRightRadius: 2,
-  },
-  otherBubble: {
-    backgroundColor: "#FFFFFF",
-    borderBottomLeftRadius: 2,
-    borderWidth: 1,
-    borderColor: '#F1F5F9'
-  },
+  myBubble: { backgroundColor: "#0EA5E9", borderBottomRightRadius: 2 },
+  otherBubble: { backgroundColor: "#FFFFFF", borderBottomLeftRadius: 2, borderWidth: 1, borderColor: "#F1F5F9" },
   messageText: { fontSize: 15, lineHeight: 20 },
-  myText: { color: "#FFFFFF", fontWeight: '500' },
+  myText: { color: "#FFFFFF", fontWeight: "500" },
   otherText: { color: "#1E293B" },
   chatImage: { width: 220, height: 220, borderRadius: 12, marginTop: 4 },
   inputContainer: {
@@ -303,7 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopWidth: 1,
     borderColor: "#F1F5F9",
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12
+    paddingBottom: Platform.OS === "ios" ? 25 : 12,
   },
   input: {
     flex: 1,
@@ -315,7 +328,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: "#E2E8F0",
   },
   iconBtn: { padding: 4 },
   sendBtn: {
@@ -330,5 +343,5 @@ const styles = StyleSheet.create({
   disabledSend: { backgroundColor: "#94A3B8" },
   modalBg: { flex: 1, backgroundColor: "black", justifyContent: "center", alignItems: "center" },
   fullImage: { width: "100%", height: "80%", resizeMode: "contain" },
-  closeModal: { position: 'absolute', top: 50, right: 20 },
+  closeModal: { position: "absolute", top: 50, right: 20 },
 });
