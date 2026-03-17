@@ -105,9 +105,9 @@ export default function PatientProfile() {
             
             {edit ? (
               <>
-                <EditableField label="Full Name" value={profile.fullName} onChange={(v) => setProfile({ ...profile, fullName: v })} />
-                <EditableField label="Age" value={String(profile.age || "")} keyboardType="numeric" onChange={(v) => setProfile({ ...profile, age: v })} />
-                <EditableField label="Phone" value={profile.phone} keyboardType="phone-pad" onChange={(v) => setProfile({ ...profile, phone: v })} />
+                <EditableField label="Full Name" value={profile.fullName} onChange={(v: any) => setProfile({ ...profile, fullName: v })} />
+                <EditableField label="Age" value={String(profile.age || "")} keyboardType="numeric" onChange={(v: any) => setProfile({ ...profile, age: v })} />
+                <EditableField label="Phone" value={profile.phone} keyboardType="phone-pad" onChange={(v: any) => setProfile({ ...profile, phone: v })} />
               </>
             ) : (
               <>
@@ -128,8 +128,8 @@ export default function PatientProfile() {
 
             {edit ? (
               <>
-                <EditableField label="Height (cm)" value={String(profile.heightCm || "")} keyboardType="numeric" onChange={(v) => setProfile({ ...profile, heightCm: v })} />
-                <EditableField label="Weight (kg)" value={String(profile.baselineWeightKg || "")} keyboardType="numeric" onChange={(v) => setProfile({ ...profile, baselineWeightKg: v })} />
+                <EditableField label="Height (cm)" value={String(profile.heightCm || "")} keyboardType="numeric" onChange={(v: any) => setProfile({ ...profile, heightCm: v })} />
+                <EditableField label="Weight (kg)" value={String(profile.baselineWeightKg || "")} keyboardType="numeric" onChange={(v: any) => setProfile({ ...profile, baselineWeightKg: v })} />
               </>
             ) : (
               <>
@@ -149,8 +149,8 @@ export default function PatientProfile() {
 
             {edit ? (
               <>
-                <EditableField label="Education" value={profile.education} onChange={(v) => setProfile({ ...profile, education: v })} />
-                <EditableField label="Occupation" value={profile.occupation} onChange={(v) => setProfile({ ...profile, occupation: v })} />
+                <EditableField label="Education" value={profile.education} onChange={(v: any) => setProfile({ ...profile, education: v })} />
+                <EditableField label="Occupation" value={profile.occupation} onChange={(v: any) => setProfile({ ...profile, occupation: v })} />
               </>
             ) : (
               <>
@@ -203,6 +203,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+    marginTop:35
   },
   loadingContainer: {
     flex: 1, 

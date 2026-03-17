@@ -142,7 +142,7 @@ export default function QuizDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F8FAFC",marginTop:35 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F8FAFC" },
   backBtn: { marginLeft: 0 },
   scrollContent: { padding: 24 },

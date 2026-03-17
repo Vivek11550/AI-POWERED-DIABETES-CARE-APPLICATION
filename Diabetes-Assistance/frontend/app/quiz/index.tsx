@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-// Import from safe-area-context for granular control
+// Import from safe-area-context
 import { SafeAreaView } from "react-native-safe-area-context"; 
 import Animated, { FadeInRight, FadeIn } from "react-native-reanimated";
 import { diabetesQuiz } from "@/src/constants/diabetesQuiz";
@@ -110,7 +110,7 @@ export default function QuizScreen() {
   /* ================= QUIZ SCREEN ================= */
 
   return (
-    // FIX: Set edges to exclude 'top' so Stack.Screen header doesn't get pushed into notch
+    // FIX 1: Remove 'top' from edges. The Stack header handles the notch.
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Stack.Screen 
         options={{ 
@@ -119,7 +119,7 @@ export default function QuizScreen() {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 0 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 5 }}>
               <Ionicons name="chevron-back" size={28} color="#0F172A" />
             </TouchableOpacity>
           )
@@ -186,6 +186,7 @@ export default function QuizScreen() {
 }
 
 const styles = StyleSheet.create({
+  // FIX 2: Removed marginTop: 35. Native header manages this space now.
   container: { flex: 1, backgroundColor: "#F8FAFC" },
   header: { padding: 24, paddingBottom: 10 },
   counter: { fontSize: 12, fontWeight: "800", color: "#94A3B8", letterSpacing: 1, marginBottom: 12 },
