@@ -40,10 +40,10 @@ export default function ExportData() {
     return (
         // Changed: Removed 'top' edge so the Stack Header sits correctly at the top
         <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-            <Stack.Screen 
-                options={{ 
+            <Stack.Screen
+                options={{
                     headerShown: true, // Explicitly force header visibility
-                    title: "Data Reports", 
+                    title: "Data Reports",
                     headerShadowVisible: false,
                     headerStyle: { backgroundColor: '#F8FAFC' },
                     headerTitleStyle: { fontWeight: '800', color: '#0F172A' },
@@ -52,7 +52,7 @@ export default function ExportData() {
                             <Ionicons name="chevron-back" size={28} color="#0F172A" />
                         </TouchableOpacity>
                     )
-                }} 
+                }}
             />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -101,6 +101,31 @@ export default function ExportData() {
                     <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
                 </TouchableOpacity>
 
+                {/* Export Button 3 - Quiz Comparison */}
+                <TouchableOpacity
+                    onPress={() =>
+                        downloadCSV("/export/quiz-comparison", "quiz_comparison.csv")
+                    }
+                    style={[
+                        styles.exportCard,
+                        exporting === "quiz_comparison.csv" && styles.disabledCard,
+                    ]}
+                    disabled={exporting !== null}
+                >
+                    <View style={[styles.cardIcon, { backgroundColor: '#FEF3C7' }]}>
+                        <Ionicons name="bar-chart" size={24} color="#F59E0B" />
+                    </View>
+
+                    <View style={styles.cardText}>
+                        <Text style={styles.cardTitle}>Quiz Progress</Text>
+                        <Text style={styles.cardSub}>
+                            Compare previous and latest quiz scores
+                        </Text>
+                    </View>
+
+                    <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+                </TouchableOpacity>
+
                 <View style={styles.footerNote}>
                     <Ionicons name="shield-checkmark" size={14} color="#94A3B8" />
                     <Text style={styles.footerText}>
@@ -136,9 +161,9 @@ const styles = StyleSheet.create({
     },
     infoTitle: { fontSize: 20, fontWeight: '800', color: '#0F172A' },
     infoSub: { fontSize: 14, color: '#64748B', textAlign: 'center', marginTop: 8, lineHeight: 20 },
-    
+
     sectionLabel: { fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 },
-    
+
     exportCard: {
         flexDirection: 'row',
         backgroundColor: 'white',
@@ -157,7 +182,7 @@ const styles = StyleSheet.create({
     cardText: { flex: 1, marginLeft: 16 },
     cardTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B' },
     cardSub: { fontSize: 12, color: '#64748B', marginTop: 2 },
-    
+
     footerNote: { flexDirection: 'row', alignItems: 'center', marginTop: 20, paddingHorizontal: 10, gap: 8 },
     footerText: { fontSize: 11, color: '#94A3B8', flex: 1, lineHeight: 16 }
 });
