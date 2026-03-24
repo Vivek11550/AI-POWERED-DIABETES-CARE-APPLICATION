@@ -35,6 +35,14 @@ export default function CreateDoctor() {
       alert(t("admin.emptyFields"));
       return;
     }
+
+    // ✅ Email validation added
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook)\.com$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
     try {
       setLoading(true);
       await API.post(AUTH.REGISTER, {
@@ -56,7 +64,6 @@ export default function CreateDoctor() {
 
   return (
     <SafeAreaView style={styles.root}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen
         options={{
           title: t("admin.dashboardTitle"),
@@ -144,7 +151,6 @@ export default function CreateDoctor() {
                 </>
               )}
             </TouchableOpacity>
-
 
             <View style={{ marginTop: 20 }}>
               <Button

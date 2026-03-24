@@ -33,14 +33,24 @@ export default function Register() {
       alert(t("auth.fillAll"));
       return;
     }
+
+    // ✅ Email validation (added)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook)\.com$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert(t("auth.passwordMismatch"));
       return;
     }
+
     if (password.length < 6) {
       alert(t("auth.passwordLength"));
       return;
     }
+
     try {
       setLoading(true);
       await API.post(AUTH.REGISTER, {
@@ -52,7 +62,8 @@ export default function Register() {
       alert(t("auth.registerSuccess"));
       router.replace("/(auth)/login");
     } catch (error: any) {
-      const message = error?.response?.data?.message || t("auth.registerFailed");
+      const message =
+        error?.response?.data?.message || t("auth.registerFailed");
       alert(message);
     } finally {
       setLoading(false);
@@ -64,7 +75,7 @@ export default function Register() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.root}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
@@ -146,13 +157,13 @@ export default function Register() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.registerBtnText}>
-                  {t("auth.signUp")} 
+                  {t("auth.signUp")}
                 </Text>
               )}
             </TouchableOpacity>
 
             {/* Login Redirect */}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.push("/(auth)/login")}
               style={styles.footerLink}
             >
