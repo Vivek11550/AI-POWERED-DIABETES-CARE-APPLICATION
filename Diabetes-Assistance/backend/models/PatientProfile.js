@@ -20,7 +20,7 @@ const patientProfileSchema = new mongoose.Schema({
 
   gender: {
     type: String,
-    enum: ["male", "female"],
+    enum: ['Male', 'Female', 'Other'],
   },
 
   heightCm: Number,
@@ -29,12 +29,12 @@ const patientProfileSchema = new mongoose.Schema({
 
   education: {
     type: String,
-   enum: ["illiterate", "primary", "secondary", "higher_secondary", "graduation+"],
+   enum: ['Illiterate', 'Primary', 'Secondary', 'Higher Sec', 'Graduation+'],
   },
 
   occupation: {
     type: String,
-    enum: ["private", "government", "farmer", "housewife"],
+    enum: ['Private', 'Government', 'Farmer', 'Housewife', 'Student'],
   },
 
   diet: {

@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-// Import from safe-area-context for better control
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
