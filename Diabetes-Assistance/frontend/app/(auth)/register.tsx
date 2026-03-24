@@ -30,18 +30,17 @@ export default function Register() {
 
   const register = async () => {
     if (!email || !password || !confirmPassword) {
-      alert("Please fill in all fields");
+      alert(t("auth.fillAll"));
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      alert(t("auth.passwordMismatch"));
       return;
     }
     if (password.length < 6) {
-      alert("Password must be at least 6 characters");
+      alert(t("auth.passwordLength"));
       return;
     }
-
     try {
       setLoading(true);
       await API.post(AUTH.REGISTER, {
@@ -50,10 +49,10 @@ export default function Register() {
         role,
       });
 
-      alert("Registered successfully");
+      alert(t("auth.registerSuccess"));
       router.replace("/(auth)/login");
     } catch (error: any) {
-      const message = error?.response?.data?.message || "Registration failed";
+      const message = error?.response?.data?.message || t("auth.registerFailed");
       alert(message);
     } finally {
       setLoading(false);
@@ -71,35 +70,35 @@ export default function Register() {
       >
         <View style={styles.container}>
           <View style={styles.card}>
-            <Text style={styles.heading}>Create Account</Text>
+            <Text style={styles.heading}>{t("auth.registerTitle")}</Text>
 
             {/* Professional Role Badge */}
             <View style={styles.roleBadge}>
               <Ionicons name="shield-checkmark" size={18} color="#0369a1" />
-              <Text style={styles.roleText}>Patient Registration Portal</Text>
+              <Text style={styles.roleText}>{t("auth.roleText")}</Text>
             </View>
 
             {/* Email Field */}
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={styles.label}>{t("auth.emailLabel")}</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              placeholder="example@mail.com"
+              placeholder={t("auth.emailPlaceholder")}
               placeholderTextColor="#94A3B8"
             />
 
             {/* Password Field */}
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.passwordInput}
                 value={password}
                 secureTextEntry={!showPassword}
                 onChangeText={setPassword}
-                placeholder="Enter password"
+                placeholder={t("auth.passwordPlaceholder")}
                 placeholderTextColor="#94A3B8"
               />
               <TouchableOpacity
@@ -115,14 +114,14 @@ export default function Register() {
             </View>
 
             {/* Confirm Password Field */}
-            <Text style={styles.label}>Confirm Password</Text>
+            <Text style={styles.label}>{t("auth.confirmPasswordLabel")}</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.passwordInput}
                 value={confirmPassword}
                 secureTextEntry={!showPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Repeat password"
+                placeholder={t("auth.confirmPasswordPlaceholder")}
                 placeholderTextColor="#94A3B8"
               />
               <TouchableOpacity
@@ -146,7 +145,9 @@ export default function Register() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.registerBtnText}>Sign Up</Text>
+                <Text style={styles.registerBtnText}>
+                  {t("auth.signUp")} 
+                </Text>
               )}
             </TouchableOpacity>
 
@@ -156,8 +157,8 @@ export default function Register() {
               style={styles.footerLink}
             >
               <Text style={styles.footerText}>
-                Already have an account?{" "}
-                <Text style={styles.linkBold}>Login</Text>
+                {t("auth.alreadyAccount")}{" "}
+                <Text style={styles.linkBold}>{t("auth.login")}</Text>
               </Text>
             </TouchableOpacity>
           </View>

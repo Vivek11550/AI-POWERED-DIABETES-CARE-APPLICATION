@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
-  Platform,
+  RefreshControl,
 } from "react-native";
-import { useEffect, useState } from "react";
-import { Stack, useRouter } from "expo-router";
+import { useState, useCallback } from "react";
+import { Stack, useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
@@ -17,34 +17,53 @@ import { useAuth } from "@/src/context/AuthContext";
 
 import ProfileAvatar from "../../components/profile/ProfileAvatar";
 import ProfileTitle from "../../components/profile/ProfileTitle";
-import InfoSection from "../../components/profile/InfoSection";
 import InfoRow from "../../components/profile/InfoRow";
 
 export default function PatientProfile() {
   const [profile, setProfile] = useState<any>({});
   const [edit, setEdit] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { logout } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  // Ensures data refreshes every time the user views this screen
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   const loadProfile = async () => {
     try {
-      setLoading(true);
+      // Only show full-screen loader if we have no data yet
+      if (!profile.fullName) setLoading(true);
+      
       const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       const res = await API.get("/profile/patient/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProfile(res.data);
+      
+      if (res.data) {
+        setProfile(res.data);
+      }
     } catch (error) {
       console.error("Error loading profile", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadProfile();
   };
 
   const saveProfile = async () => {
@@ -55,12 +74,13 @@ export default function PatientProfile() {
       });
       alert("Profile updated successfully");
       setEdit(false);
+      loadProfile(); 
     } catch (error) {
       alert("Error saving profile");
     }
   };
 
-  if (loading) {
+  if (loading && !profile.fullName) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0EA5E9" />
@@ -70,7 +90,6 @@ export default function PatientProfile() {
 
   return (
     <View style={styles.root}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
           title: "My Profile",
@@ -85,8 +104,17 @@ export default function PatientProfile() {
         }} 
       />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ================= PROFILE TOP SECTION ================= */}
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={["#0EA5E9"]} // Android
+            tintColor="#0EA5E9"    // iOS
+          />
+        }
+      >
         <View style={styles.headerSection}>
           <ProfileAvatar />
           <ProfileTitle
@@ -105,9 +133,9 @@ export default function PatientProfile() {
             
             {edit ? (
               <>
-                <EditableField label="Full Name" value={profile.fullName} onChange={(v: any) => setProfile({ ...profile, fullName: v })} />
-                <EditableField label="Age" value={String(profile.age || "")} keyboardType="numeric" onChange={(v: any) => setProfile({ ...profile, age: v })} />
-                <EditableField label="Phone" value={profile.phone} keyboardType="phone-pad" onChange={(v: any) => setProfile({ ...profile, phone: v })} />
+                <EditableField label="Full Name" value={profile.fullName} onChange={(v: string) => setProfile({ ...profile, fullName: v })} />
+                <EditableField label="Age" value={String(profile.age || "")} keyboardType="numeric" onChange={(v: string) => setProfile({ ...profile, age: v })} />
+                <EditableField label="Phone" value={profile.phone} keyboardType="phone-pad" onChange={(v: string) => setProfile({ ...profile, phone: v })} />
               </>
             ) : (
               <>
@@ -128,8 +156,8 @@ export default function PatientProfile() {
 
             {edit ? (
               <>
-                <EditableField label="Height (cm)" value={String(profile.heightCm || "")} keyboardType="numeric" onChange={(v: any) => setProfile({ ...profile, heightCm: v })} />
-                <EditableField label="Weight (kg)" value={String(profile.baselineWeightKg || "")} keyboardType="numeric" onChange={(v: any) => setProfile({ ...profile, baselineWeightKg: v })} />
+                <EditableField label="Height (cm)" value={String(profile.heightCm || "")} keyboardType="numeric" onChange={(v: string) => setProfile({ ...profile, heightCm: v })} />
+                <EditableField label="Weight (kg)" value={String(profile.baselineWeightKg || "")} keyboardType="numeric" onChange={(v: string) => setProfile({ ...profile, baselineWeightKg: v })} />
               </>
             ) : (
               <>
@@ -149,8 +177,8 @@ export default function PatientProfile() {
 
             {edit ? (
               <>
-                <EditableField label="Education" value={profile.education} onChange={(v: any) => setProfile({ ...profile, education: v })} />
-                <EditableField label="Occupation" value={profile.occupation} onChange={(v: any) => setProfile({ ...profile, occupation: v })} />
+                <EditableField label="Education" value={profile.education} onChange={(v: string) => setProfile({ ...profile, education: v })} />
+                <EditableField label="Occupation" value={profile.occupation} onChange={(v: string) => setProfile({ ...profile, occupation: v })} />
               </>
             ) : (
               <>
@@ -179,8 +207,6 @@ export default function PatientProfile() {
   );
 }
 
-/* ================= EDITABLE INPUT ================= */
-
 function EditableField({ label, value, onChange, keyboardType = "default" }: any) {
   return (
     <View style={styles.inputGroup}>
@@ -197,118 +223,29 @@ function EditableField({ label, value, onChange, keyboardType = "default" }: any
   );
 }
 
-/* ================= STYLES ================= */
-
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    marginTop:35
-  },
-  loadingContainer: {
-    flex: 1, 
-    justifyContent: 'center', 
-    backgroundColor: '#F8FAFC'
-  },
-  backBtn: {
-    marginLeft: 10,
-    padding: 8,
-  },
+  root: { flex: 1, backgroundColor: "#F8FAFC", marginTop: 35 },
+  loadingContainer: { flex: 1, justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  backBtn: { marginLeft: 10, padding: 8 },
   headerSection: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 30,
     alignItems: 'center',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
     elevation: 3,
   },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingBottom: 10,
-  },
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#334155',
-    marginLeft: 8,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: "#F1F5F9",
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: "#1E293B",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  mainBtn: {
-    flexDirection: 'row',
-    paddingVertical: 16,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    gap: 8,
-  },
-  editBtn: {
-    backgroundColor: "#0EA5E9",
-  },
-  saveBtn: {
-    backgroundColor: "#10B981", // Green for saving
-  },
-  btnText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 15,
-    backgroundColor: '#FEF2F2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
-    gap: 8,
-  },
-  logoutText: {
-    color: '#EF4444',
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  contentContainer: { padding: 20, paddingBottom: 40 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, marginBottom: 16, elevation: 2 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingBottom: 10 },
+  sectionLabel: { fontSize: 16, fontWeight: '700', color: '#334155', marginLeft: 8 },
+  inputGroup: { marginBottom: 16 },
+  inputLabel: { fontSize: 12, fontWeight: '600', color: '#64748B', marginBottom: 6, textTransform: 'uppercase' },
+  input: { backgroundColor: "#F1F5F9", borderRadius: 12, padding: 14, fontSize: 16, color: "#1E293B", borderWidth: 1, borderColor: "#E2E8F0" },
+  mainBtn: { flexDirection: 'row', paddingVertical: 16, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginTop: 10, gap: 8 },
+  editBtn: { backgroundColor: "#0EA5E9" },
+  saveBtn: { backgroundColor: "#10B981" },
+  btnText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  logoutBtn: { flexDirection: 'row', marginTop: 16, padding: 16, borderRadius: 15, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FEE2E2', gap: 8 },
+  logoutText: { color: '#EF4444', fontWeight: '700', fontSize: 16 },
 });

@@ -43,4 +43,4 @@ app-example
 /ios
 /android
 
-/backend/uploads/chat/*
+# /backend/uploads/chat/*

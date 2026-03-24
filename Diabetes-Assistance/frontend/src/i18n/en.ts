@@ -17,7 +17,8 @@ export default {
     chatSub: "View doctor’s advice & reply",
   },
   // Login Page
-  auth: {
+    auth: {
+    // Login Page
     emailLabel: "Email",
     emailPlaceholder: "Enter your email",
     passwordLabel: "Password",
@@ -25,6 +26,24 @@ export default {
     loginButton: "Login",
     goToRegister: "Go to Register",
     welcomeBack:"welcomeBack",
+
+    // Register
+    registerTitle: "Create Account",
+    roleText: "Patient Registration Portal",
+    confirmPasswordLabel: "Confirm Password",
+    confirmPasswordPlaceholder: "Repeat password",
+    signUp: "Sign Up",
+    alreadyAccount: "Already have an account?",
+    login: "Login",
+
+    // Alerts / Messages
+    emptyFields: "Please enter email and password",
+    fillAll: "Please fill in all fields",
+    passwordMismatch: "Passwords do not match",
+    passwordLength: "Password must be at least 6 characters",
+    loginFailed: "Login failed",
+    registerSuccess: "Registered successfully",
+    registerFailed: "Registration failed",
   },
 
   //dashboard doctor

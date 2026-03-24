@@ -17,14 +17,31 @@ export default {
   },
 
   // लॉगिन पृष्ठ (Login Page)
-  auth: {
+   auth: {
+    // लॉगिन पृष्ठ (Login Page)
     emailLabel: "ईमेल",
     emailPlaceholder: "तुमचा ईमेल प्रविष्ट करा",
     passwordLabel: "पासवर्ड",
     passwordPlaceholder: "तुमचा पासवर्ड प्रविष्ट करा",
     loginButton: "लॉगिन करा",
     goToRegister: "नोंदणी पृष्ठावर जा",
-    welcomeBack:"पुन्हा स्वागत आहे!"
+    welcomeBack:"पुन्हा स्वागत आहे!",
+
+    // Register Page
+    registerTitle: "खाते तयार करा",
+    roleText: "रुग्ण नोंदणी पोर्टल",
+    confirmPasswordLabel: "पासवर्डची पुष्टी करा",
+    confirmPasswordPlaceholder: "पासवर्ड पुन्हा लिहा",
+    signUp: "नोंदणी करा",
+    alreadyAccount: "आधीच खाते आहे?",
+    login: "लॉगिन",
+
+    // Alerts
+    fillAll: "कृपया सर्व फील्ड भरा",
+    passwordMismatch: "पासवर्ड जुळत नाहीत",
+    passwordLength: "पासवर्ड किमान 6 अक्षरांचा असावा",
+    registerSuccess: "नोंदणी यशस्वी झाली",
+    registerFailed: "नोंदणी अयशस्वी झाली"
   },
 
   // dashboard-doctor

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-// Import from safe-area-context
 import { SafeAreaView } from "react-native-safe-area-context"; 
 import Animated, { FadeInRight, FadeIn } from "react-native-reanimated";
 import { diabetesQuiz } from "@/src/constants/diabetesQuiz";
@@ -214,7 +213,6 @@ const styles = StyleSheet.create({
   selectedOptionBtn: { borderColor: "#10B981", backgroundColor: "#F0FDF4" },
   optionText: { fontSize: 16, color: "#475569", fontWeight: "600", flex: 1 },
   selectedOptionText: { color: "#166534" },
-
   footer: { padding: 24, paddingBottom: 30 },
   nextButton: {
     backgroundColor: "#10B981",

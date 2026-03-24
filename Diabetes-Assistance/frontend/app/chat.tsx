@@ -46,6 +46,7 @@ export default function ChatScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const chatIdRef = useRef("");
+  const flatListRef = useRef<FlatList>(null); // Added ref for auto-scroll
 
   useEffect(() => {
     initChat();
@@ -134,9 +135,7 @@ export default function ChatScreen() {
     }
   };
 
-  /* ---------------- PICK IMAGE (FIXED) ---------------- */
   const pickImage = async () => {
-    // FIX: Using the non-deprecated MediaType array string
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'], 
       quality: 0.7,
@@ -236,18 +235,26 @@ export default function ChatScreen() {
       />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"} // Android fix: Change to 'height'
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         style={{ flex: 1 }}
       >
         <FlatList
+          ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0EA5E9" />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              colors={["#0EA5E9"]} 
+              tintColor="#0EA5E9" 
+            />
           }
         />
 
@@ -262,6 +269,7 @@ export default function ChatScreen() {
             onChangeText={setText}
             style={styles.input}
             multiline
+            textAlignVertical="center" // Android improvement
           />
 
           <TouchableOpacity
@@ -316,7 +324,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopWidth: 1,
     borderColor: "#F1F5F9",
-    paddingBottom: Platform.OS === "ios" ? 25 : 12,
+    // Android specific padding fix to avoid box squeezing
+    paddingBottom: Platform.OS === "ios" ? 25 : 12, 
   },
   input: {
     flex: 1,
