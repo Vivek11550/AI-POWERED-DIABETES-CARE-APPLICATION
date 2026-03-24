@@ -1,40 +1,53 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useLanguage } from "@/src/context/LanguageContext";
+
+// 1. Define the Interface to fix "Implicit Any" and "Property Map" errors
+interface RiskConfig {
+  color: string;
+  bg: string;
+  label: string;
+  icon: string;
+  caution: string;
+  steps: string[]; // Explicitly tell TS this is an array
+}
 
 export default function Result() {
   const { risk } = useLocalSearchParams();
   const router = useRouter();
-
+  const { t } = useLanguage();
+  
   // Configuration based on Risk Level
-  const getRiskDetails = () => {
+  const getRiskDetails = (): RiskConfig => {
     switch (risk) {
       case "Level 3":
         return {
-          color: "#EF4444", // Red
+          color: "#EF4444",
           bg: "#FEF2F2",
-          label: "High Risk",
+          label: t("result.highRisk"),
           icon: "alert-circle",
-          caution: "URGENT: Please consult your doctor immediately. High glucose and HbA1c levels detected. Monitor for symptoms of ketoacidosis.",
-          steps: ["Contact your primary physician", "Check ketone levels if possible", "Strictly follow prescribed insulin/medication"]
+          caution: t("result.highCaution"),
+          // Force type cast to any/string[] because i18n 't' often returns 'any' or 'string'
+          steps: t("result.highSteps") as any 
         };
       case "Level 2":
         return {
-          color: "#F59E0B", // Orange
+          color: "#F59E0B",
           bg: "#FFFBEB",
-          label: "Moderate Risk",
+          label: t("result.moderateRisk"),
           icon: "warning",
-          caution: "CAUTION: Your levels are above target. Review your recent diet and exercise. Schedule a follow-up checkup soon.",
-          steps: ["Reduce carbohydrate intake", "Increase daily physical activity", "Monitor blood sugar twice daily"]
+          caution: t("result.moderateCaution"),
+          steps: t("result.moderateSteps") as any
         };
       default:
         return {
-          color: "#10B981", // Green
+          color: "#10B981",
           bg: "#F0FDF4",
-          label: "Low Risk",
+          label: t("result.lowRisk"),
           icon: "checkmark-circle",
-          caution: "GOOD NEWS: Your diabetic markers are currently stable. Continue your healthy lifestyle and routine checkups.",
-          steps: ["Maintain current diet", "Stay hydrated", "Next routine checkup in 3 months"]
+          caution: t("result.lowCaution"),
+          steps: t("result.lowSteps") as any
         };
     }
   };
@@ -42,19 +55,18 @@ export default function Result() {
   const config = getRiskDetails();
 
   const handleGoHome = () => {
-    // replace ensures the assessment stack is cleared and dashboard re-renders
     router.replace("/dashboard/patient");
   };
 
   return (
     <SafeAreaView style={styles.root}>
-      <Stack.Screen options={{ title: "Assessment Result", headerShadowVisible: false }} />
+      <Stack.Screen options={{ title: t("result.header"), headerShadowVisible: false }} />
       
       <ScrollView contentContainerStyle={styles.container}>
         {/* Risk Meter Section */}
         <View style={[styles.resultCard, { backgroundColor: config.bg }]}>
           <Ionicons name={config.icon as any} size={80} color={config.color} />
-          <Text style={styles.label}>Your Risk Level</Text>
+          <Text style={styles.label}>{t("result.yourRisk")}</Text>
           <Text style={[styles.riskValue, { color: config.color }]}>{risk}</Text>
           <View style={[styles.badge, { backgroundColor: config.color }]}>
             <Text style={styles.badgeText}>{config.label}</Text>
@@ -65,25 +77,30 @@ export default function Result() {
         <View style={styles.cautionCard}>
           <View style={styles.cardHeader}>
             <Ionicons name="medical" size={20} color="#64748B" />
-            <Text style={styles.cardTitle}>Medical Caution</Text>
+            <Text style={styles.cardTitle}>{t("result.medicalCaution")}</Text>
           </View>
           <Text style={styles.cautionText}>{config.caution}</Text>
         </View>
 
         {/* Action Steps */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Recommended Steps</Text>
-          {config.steps.map((step, index) => (
-            <View key={index} style={styles.stepRow}>
-              <View style={[styles.dot, { backgroundColor: config.color }]} />
-              <Text style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
+          <Text style={styles.cardTitle}>{t("result.steps")}</Text>
+          {/* 2. Added Array check and explicit types for map parameters */}
+          {Array.isArray(config.steps) ? (
+            config.steps.map((step: string, index: number) => (
+              <View key={index} style={styles.stepRow}>
+                <View style={[styles.dot, { backgroundColor: config.color }]} />
+                <Text style={styles.stepText}>{step}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.stepText}>{String(config.steps)}</Text>
+          )}
         </View>
 
         {/* Navigation */}
         <TouchableOpacity style={styles.homeBtn} onPress={handleGoHome}>
-          <Text style={styles.homeBtnText}>Return to Dashboard</Text>
+          <Text style={styles.homeBtnText}>{t("result.home")}</Text>
           <Ionicons name="home" size={20} color="white" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </ScrollView>
@@ -114,7 +131,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderLeftWidth: 5,
-    borderLeftColor: "#64748B", // Neutral grey or change based on level
+    borderLeftColor: "#64748B",
     elevation: 2,
   },
   card: { backgroundColor: "white", width: "100%", borderRadius: 20, padding: 20, marginBottom: 20, elevation: 2 },

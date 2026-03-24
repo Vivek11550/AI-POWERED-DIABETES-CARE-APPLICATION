@@ -6,26 +6,27 @@ import {
   ScrollView, 
   SafeAreaView, 
   TouchableOpacity, 
-  Linking,
-  Platform
+  Linking
 } from "react-native";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function FootCareScreen() {
   const [playing, setPlaying] = useState(false);
   const router = useRouter();
+  const { t } = useLanguage();
 
   const instructions = [
-    { id: 1, text: "Daily inspection – check for cuts, blisters, or redness.", icon: "eye-outline", color: "#2563eb" },
-    { id: 2, text: "Wash daily with lukewarm water & dry between toes.", icon: "water-outline", color: "#0ea5e9" },
-    { id: 3, text: "Moisturize skin (avoid putting lotion between toes).", icon: "beaker-outline", color: "#8b5cf6" },
-    { id: 4, text: "Trim nails straight across; avoid cutting corners.", icon: "cut-outline", color: "#f59e0b" },
-    { id: 5, text: "Wear clean, cotton socks and change them daily.", icon: "shirt-outline", color: "#10b981" },
-    { id: 6, text: "Choose soft, well-fitted shoes; avoid high heels.", icon: "walk-outline", color: "#ef4444" },
-    { id: 7, text: "Never walk barefoot indoors or outdoors.", icon: "alert-circle-outline", color: "#dc2626" },
-    { id: 8, text: "Protect feet from extreme heat or cold.", icon: "thermometer-outline", color: "#f97316" },
+    { id: 1, text: t("foot.item1"), icon: "eye-outline", color: "#2563eb" },
+    { id: 2, text: t("foot.item2"), icon: "water-outline", color: "#0ea5e9" },
+    { id: 3, text: t("foot.item3"), icon: "beaker-outline", color: "#8b5cf6" },
+    { id: 4, text: t("foot.item4"), icon: "cut-outline", color: "#f59e0b" },
+    { id: 5, text: t("foot.item5"), icon: "shirt-outline", color: "#10b981" },
+    { id: 6, text: t("foot.item6"), icon: "walk-outline", color: "#ef4444" },
+    { id: 7, text: t("foot.item7"), icon: "alert-circle-outline", color: "#dc2626" },
+    { id: 8, text: t("foot.item8"), icon: "thermometer-outline", color: "#f97316" },
   ];
 
   const onStateChange = useCallback((state: string) => {
@@ -36,10 +37,9 @@ export default function FootCareScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
-          title: "Foot Care Guide",
+          title: t("foot.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#f8fafc' },
@@ -53,13 +53,11 @@ export default function FootCareScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.title}>Healthy Feet</Text>
-          <Text style={styles.subtitle}>Prevent complications with these daily routines</Text>
+          <Text style={styles.title}>{t("foot.title")}</Text>
+          <Text style={styles.subtitle}>{t("foot.subtitle")}</Text>
         </View>
 
-        {/* Video Card Section */}
         <View style={styles.videoCard}>
           <View style={styles.videoWrapper}>
             <YoutubePlayer
@@ -72,17 +70,16 @@ export default function FootCareScreen() {
           <View style={styles.videoInfo}>
             <View style={styles.videoHeader}>
               <Ionicons name="play-circle" size={18} color="#0ea5e9" />
-              <Text style={styles.videoLabel}>Educational Video</Text>
+              <Text style={styles.videoLabel}>{t("foot.videoLabel")}</Text>
             </View>
-            <Text style={styles.videoTitle}>Foot care in Diabetes Mellitus</Text>
-            <Text style={styles.videoSub}>A professional guide by Shubhangi Gaikwad</Text>
+            <Text style={styles.videoTitle}>{t("foot.videoTitle")}</Text>
+            <Text style={styles.videoSub}>{t("foot.videoSub")}</Text>
           </View>
         </View>
 
-        {/* Instructions List Section */}
         <View style={styles.sectionHeaderRow}>
           <Ionicons name="list" size={20} color="#1e293b" />
-          <Text style={styles.sectionTitle}>Daily Management</Text>
+          <Text style={styles.sectionTitle}>{t("foot.section")}</Text>
         </View>
 
         <View style={styles.listContainer}>
@@ -102,25 +99,22 @@ export default function FootCareScreen() {
           ))}
         </View>
 
-        {/* Warning Section */}
         <TouchableOpacity 
           style={styles.warningCard}
           activeOpacity={0.8}
-          onPress={() => Linking.openURL('tel:108')} // Updated to Indian emergency number
+          onPress={() => Linking.openURL('tel:108')}
         >
           <View style={styles.warningHeader}>
             <View style={styles.warningIconCircle}>
               <Ionicons name="medical" size={22} color="white" />
             </View>
             <View style={styles.warningTextGroup}>
-              <Text style={styles.warningTitle}>When to see a Doctor?</Text>
-              <Text style={styles.warningText}>
-                Report any wounds, redness, or swelling immediately. Do not treat corns yourself.
-              </Text>
+              <Text style={styles.warningTitle}>{t("foot.warningTitle")}</Text>
+              <Text style={styles.warningText}>{t("foot.warningText")}</Text>
             </View>
           </View>
           <View style={styles.emergencyBadge}>
-            <Text style={styles.emergencyText}>Contact Clinic</Text>
+            <Text style={styles.emergencyText}>{t("foot.contact")}</Text>
             <Ionicons name="call" size={14} color="#b91c1c" style={{marginLeft: 4}} />
           </View>
         </TouchableOpacity>

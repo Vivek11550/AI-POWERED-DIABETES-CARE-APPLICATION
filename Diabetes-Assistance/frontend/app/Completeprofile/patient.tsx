@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import API from "../../src/services/api";
 import { RelativePathString, useRouter } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 /* ================= TYPES ================= */
 
@@ -40,6 +41,7 @@ export default function PatientProfile() {
 
   const router = useRouter();
   const { token, role, login } = useAuth();
+  const { t } = useLanguage();
 
   /* ================= OPTION COMPONENT ================= */
 
@@ -67,7 +69,7 @@ export default function PatientProfile() {
   const submitProfile = async () => {
     try {
       if (phone && phone.length < 10) {
-        alert("Please enter valid phone number");
+        alert(t("patientProfile.invalidPhone"));
         return;
       }
 
@@ -87,11 +89,11 @@ export default function PatientProfile() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Profile saved successfully");
+      alert(t("patientProfile.success"));
       await login(token!, role!, true);
       router.replace("/quiz" as RelativePathString);
     } catch (err) {
-      alert("Error saving profile");
+      alert(t("patientProfile.error"));
     }
   };
 
@@ -100,15 +102,14 @@ export default function PatientProfile() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
-          <Text style={styles.title}>Complete Profile</Text>
-          <Text style={styles.subtitle}>Help us personalize your diabetic care plan</Text>
+          <Text style={styles.title}>{t("patientProfile.title")}</Text>
+          <Text style={styles.subtitle}>{t("patientProfile.subtitle")}</Text>
 
           <View style={styles.formCard}>
             
-            {/* --- Section 1: Personal --- */}
-            <SectionHeader title="Personal Information" icon="person-outline" />
+            <SectionHeader title={t("patientProfile.personal")} icon="person-outline" />
             
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>{t("patientProfile.fullName")}</Text>
             <TextInput
               style={styles.input}
               placeholder="e.g. John Doe"
@@ -116,7 +117,7 @@ export default function PatientProfile() {
               placeholderTextColor="#94A3B8"
             />
 
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.label}>{t("patientProfile.phone")}</Text>
             <TextInput
               style={styles.input}
               placeholder="+91 00000 00000"
@@ -126,12 +127,11 @@ export default function PatientProfile() {
               placeholderTextColor="#94A3B8"
             />
 
-            {/* --- Section 2: Physical Metrics --- */}
-            <SectionHeader title="Physical Metrics" icon="fitness-outline" />
+            <SectionHeader title={t("patientProfile.physical")} icon="fitness-outline" />
             
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 12 }}>
-                <Text style={styles.label}>Age</Text>
+                <Text style={styles.label}>{t("patientProfile.age")}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Yrs"
@@ -141,7 +141,7 @@ export default function PatientProfile() {
                 />
               </View>
               <View style={{ flex: 1, marginRight: 12 }}>
-                <Text style={styles.label}>Height</Text>
+                <Text style={styles.label}>{t("patientProfile.height")}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="cm"
@@ -151,7 +151,7 @@ export default function PatientProfile() {
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Weight</Text>
+                <Text style={styles.label}>{t("patientProfile.weight")}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="kg"
@@ -162,39 +162,54 @@ export default function PatientProfile() {
               </View>
             </View>
 
-            <Text style={styles.label}>Gender</Text>
+            <Text style={styles.label}>{t("patientProfile.gender")}</Text>
             <View style={styles.optionRow}>
-              {['Male', 'Female', 'Other'].map((item) => (
-                <Option key={item} label={item} value={item.toLowerCase()} selected={gender} onSelect={setGender} />
+              {[
+                { label: t("patientProfile.male"), value: "Male" },
+                { label: t("patientProfile.female"), value: "Female" },
+                { label: t("patientProfile.other"), value: "Other" },
+              ].map((item) => (
+                <Option key={item.value} label={item.label} value={item.value} selected={gender} onSelect={setGender} />
               ))}
             </View>
 
-            {/* --- Section 3: Socio-Economic --- */}
-            <SectionHeader title="Lifestyle & Background" icon="leaf-outline" />
+            <SectionHeader title={t("patientProfile.lifestyle")} icon="leaf-outline" />
 
-            <Text style={styles.label}>Dietary Preference</Text>
+            <Text style={styles.label}>{t("patientProfile.diet")}</Text>
             <View style={styles.optionRow}>
-              <Option label="Vegetarian" value="veg" selected={diet} onSelect={setDiet} />
-              <Option label="Non-Veg" value="nonveg" selected={diet} onSelect={setDiet} />
+              <Option label={t("patientProfile.veg")} value="veg" selected={diet} onSelect={setDiet} />
+              <Option label={t("patientProfile.nonveg")} value="nonveg" selected={diet} onSelect={setDiet} />
             </View>
 
-            <Text style={styles.label}>Education</Text>
+            <Text style={styles.label}>{t("patientProfile.education")}</Text>
             <View style={styles.optionWrap}>
-              {['Illiterate', 'Primary', 'Secondary', 'Higher Sec', 'Graduation+'].map((edu) => (
-                <Option key={edu} label={edu} value={edu.toLowerCase().replace(' ', '_')} selected={education} onSelect={setEducation} />
+              {[
+                { label: t("patientProfile.illiterate"), value: "Illiterate" },
+                { label: t("patientProfile.primary"), value: "Primary" },
+                { label: t("patientProfile.secondary"), value: "Secondary" },
+                { label: t("patientProfile.higher"), value: "Higher Sec" },
+                { label: t("patientProfile.graduation"), value: "Graduation+" },
+              ].map((edu) => (
+                <Option key={edu.value} label={edu.label} value={edu.value} selected={education} onSelect={setEducation} />
               ))}
             </View>
 
-            <Text style={styles.label}>Occupation</Text>
+            <Text style={styles.label}>{t("patientProfile.occupation")}</Text>
             <View style={styles.optionWrap}>
-              {['Private', 'Government', 'Farmer', 'Housewife', 'Student'].map((occ) => (
-                <Option key={occ} label={occ} value={occ.toLowerCase()} selected={occupation} onSelect={setOccupation} />
+              {[
+                { label: t("patientProfile.private"), value: "Private" },
+                { label: t("patientProfile.government"), value: "Government" },
+                { label: t("patientProfile.farmer"), value: "Farmer" },
+                { label: t("patientProfile.housewife"), value: "Housewife" },
+                { label: t("patientProfile.student"), value: "Student" },
+              ].map((occ) => (
+                <Option key={occ.value} label={occ.label} value={occ.value} selected={occupation} onSelect={setOccupation} />
               ))}
             </View>
           </View>
 
           <TouchableOpacity style={styles.button} onPress={submitProfile}>
-            <Text style={styles.buttonText}>Save & Continue</Text>
+            <Text style={styles.buttonText}>{t("patientProfile.saveBtn")}</Text>
             <Ionicons name="arrow-forward" size={20} color="#FFF" style={{ marginLeft: 8 }} />
           </TouchableOpacity>
         </ScrollView>

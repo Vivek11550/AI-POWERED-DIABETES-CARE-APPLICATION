@@ -7,12 +7,11 @@ import {
   SafeAreaView, 
   ActivityIndicator, 
   RefreshControl,
-  Dimensions // Added Dimensions
+  Dimensions
 } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
-import { i18n } from "../../src/i18n/i18n";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -20,13 +19,15 @@ import RiskHeader from "../../components/patientdasboard/RiskHeader";
 import RiskProgressBar from "../../components/patientdasboard/RiskProgressBar";
 import RiskDescription from "../../components/patientdasboard/RiskDescription";
 import RiskFactorList from "../../components/patientdasboard/RiskFactorList";
+import { useLanguage } from "@/src/context/LanguageContext";
 
-// Calculate column width to prevent "half-visible" or stretching buttons
 const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 40 - 12) / 2; // (Total Width - Padding - Gap) / 2
+const COLUMN_WIDTH = (width - 40 - 12) / 2;
 
 export default function PatientDashboard() {
   const router = useRouter();
+  const { t } = useLanguage();
+
   const [chatId, setChatId] = useState<string | null>(null);
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -79,7 +80,7 @@ export default function PatientDashboard() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#0EA5E9" />
-        <Text style={styles.loadingText}>Loading health data...</Text>
+        <Text style={styles.loadingText}>{t("patientDashboard.loading")}</Text>
       </View>
     );
   }
@@ -96,8 +97,8 @@ export default function PatientDashboard() {
         
         <View style={styles.topBar}>
           <View>
-            <Text style={styles.greeting}>Hello, Patient</Text>
-            <Text style={styles.appTitle}> Your Dashboard</Text>
+            <Text style={styles.greeting}>{t("patientDashboard.greeting")}</Text>
+            <Text style={styles.appTitle}>{t("patientDashboard.dashboardTitle")}</Text>
           </View>
           <LanguageSwitcher />
         </View>
@@ -105,19 +106,19 @@ export default function PatientDashboard() {
         {!assessment ? (
           <View style={styles.emptyCard}>
             <Ionicons name="clipboard-outline" size={50} color="#94A3B8" />
-            <Text style={styles.emptyText}>No health assessment found</Text>
+            <Text style={styles.emptyText}>{t("patientDashboard.noAssessment")}</Text>
             <TouchableOpacity 
               onPress={() => router.push("/recommendation/recommendation" as any)}
               style={styles.primaryAction}
             >
-              <Text style={styles.primaryActionText}>Start Assessment Now</Text>
+              <Text style={styles.primaryActionText}>{t("patientDashboard.startAssessment")}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <>
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Risk Analysis</Text>
+                <Text style={styles.cardTitle}>{t("patientDashboard.riskAnalysis")}</Text>
                 <Ionicons name="pulse" size={20} color="#0EA5E9" />
               </View>
               <RiskHeader level={assessment.riskLevel} />
@@ -127,18 +128,19 @@ export default function PatientDashboard() {
             </View>
 
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionLabel}>Your Health Metrics</Text>
+              <Text style={styles.sectionLabel}>{t("patientDashboard.healthMetrics")}</Text>
               <TouchableOpacity onPress={() => router.push("/recommendation/recommendation" as any)}>
-                <Text style={styles.retestLink}>Retest</Text>
+                <Text style={styles.retestLink}>{t("patientDashboard.retest")}</Text>
               </TouchableOpacity>
             </View>
             <RiskFactorList assessment={assessment} />
           </>
         )}
 
-        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Quick Actions</Text>
+        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>
+          {t("patientDashboard.quickActions")}
+        </Text>
         
-        {/* Adjusted Grid Container */}
         <View style={styles.buttonGrid}>
           <TouchableOpacity 
             onPress={() => router.push("/recommendation/recommendation" as any)}
@@ -147,7 +149,7 @@ export default function PatientDashboard() {
             <View style={styles.iconCircle}>
               <Ionicons name="flask" size={22} color="white" />
             </View>
-            <Text style={styles.buttonText}>Health Tips</Text>
+            <Text style={styles.buttonText}>{t("patientDashboard.healthTips")}</Text>
           </TouchableOpacity>
 
           {chatId && (
@@ -158,7 +160,7 @@ export default function PatientDashboard() {
               <View style={styles.iconCircle}>
                 <Ionicons name="chatbubbles" size={22} color="white" />
               </View>
-              <Text style={styles.buttonText}>Consult Doctor</Text>
+              <Text style={styles.buttonText}>{t("patientDashboard.consultDoctor")}</Text>
             </TouchableOpacity>
           )}
 
@@ -169,19 +171,18 @@ export default function PatientDashboard() {
             <View style={styles.iconCircle}>
               <Ionicons name="person" size={22} color="white" />
             </View>
-            <Text style={styles.buttonText}>My Profile</Text>
+            <Text style={styles.buttonText}>{t("patientDashboard.myProfile")}</Text>
           </TouchableOpacity>
 
-         <TouchableOpacity 
-  onPress={() => router.push("/quiz/dashboard" as any)}
-  style={[styles.gridButton, { backgroundColor: "#10B981" }]} 
->
-  <View style={styles.iconCircle}>
-    {/* Changed icon to puzzle-piece or library for a 'Knowledge' feel */}
-    <Ionicons name="extension-puzzle" size={22} color="white" />
-  </View>
-  <Text style={styles.buttonText}>Health Quiz</Text>
-</TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => router.push("/quiz/dashboard" as any)}
+            style={[styles.gridButton, { backgroundColor: "#10B981" }]} 
+          >
+            <View style={styles.iconCircle}>
+              <Ionicons name="extension-puzzle" size={22} color="white" />
+            </View>
+            <Text style={styles.buttonText}>{t("patientDashboard.healthQuiz")}</Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>

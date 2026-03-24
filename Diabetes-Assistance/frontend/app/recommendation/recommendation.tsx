@@ -11,19 +11,17 @@ import { i18n } from "../../src/i18n/i18n";
 import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons"; 
 
-// Calculate width for consistent 2-column grid
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 40 - 15) / 2; // (Total Width - Padding - Gap) / 2
+const CARD_WIDTH = (width - 40 - 15) / 2;
 
 export default function RecommendationDashboard() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
-          title: "Care Recommendations",
+          title: i18n.t("recommend.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
@@ -43,11 +41,10 @@ export default function RecommendationDashboard() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         <View style={styles.topHeader}>
-          <Text style={styles.title}>Health Guidance</Text>
-          <Text style={styles.subtitle}>Personalized steps to manage your diabetic health effectively.</Text>
+          <Text style={styles.title}>{i18n.t("recommend.title")}</Text>
+          <Text style={styles.subtitle}>{i18n.t("recommend.subtitle")}</Text>
         </View>
 
-        {/* Primary Health Assessment - The Highlighted Action */}
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => router.push("/assessment" as any)}
@@ -63,12 +60,10 @@ export default function RecommendationDashboard() {
           <Ionicons name="arrow-forward-circle" size={32} color="rgba(255,255,255,0.6)" />
         </TouchableOpacity>
 
-        <Text style={styles.sectionLabel}>Educational Modules</Text>
+        <Text style={styles.sectionLabel}>{i18n.t("recommend.section")}</Text>
 
-        {/* Responsive Grid Section */}
         <View style={styles.gridContainer}>
           
-          {/* Diet Card */}
           <TouchableOpacity
             onPress={() => router.push("/diet" as any)}
             style={[styles.gridCard, { borderTopColor: "#10B981" }]}
@@ -82,7 +77,6 @@ export default function RecommendationDashboard() {
             </Text>
           </TouchableOpacity>
 
-          {/* Exercise Card */}
           <TouchableOpacity
             onPress={() => router.push("/exercise" as any)}
             style={[styles.gridCard, { borderTopColor: "#F59E0B" }]}
@@ -96,7 +90,6 @@ export default function RecommendationDashboard() {
             </Text>
           </TouchableOpacity>
 
-          {/* Foot Care Card */}
           <TouchableOpacity
             onPress={() => router.push("/footcare" as any)}
             style={[styles.gridCard, { borderTopColor: "#0EA5E9" }]}
@@ -104,13 +97,12 @@ export default function RecommendationDashboard() {
             <View style={[styles.miniIconBg, { backgroundColor: '#F0F9FF' }]}>
                <Ionicons name="body" size={22} color="#0EA5E9" />
             </View>
-            <Text style={styles.gridTitle}>Foot Care</Text>
+            <Text style={styles.gridTitle}>{i18n.t("recommend.foot")}</Text>
             <Text style={styles.gridSubtext} numberOfLines={2}>
-              Essential daily checks and routines.
+              {i18n.t("recommend.footSub")}
             </Text>
           </TouchableOpacity>
 
-          {/* Health Knowledge / Quiz Card */}
           <TouchableOpacity
             onPress={() => router.push("/quiz/dashboard" as any)}
             style={[styles.gridCard, { borderTopColor: "#8B5CF6" }]}
@@ -118,8 +110,10 @@ export default function RecommendationDashboard() {
             <View style={[styles.miniIconBg, { backgroundColor: '#F5F3FF' }]}>
                <Ionicons name="extension-puzzle" size={22} color="#8B5CF6" />
             </View>
-            <Text style={styles.gridTitle}>Knowledge</Text>
-            <Text style={styles.gridSubtext}>Test your diabetes awareness score.</Text>
+            <Text style={styles.gridTitle}>{i18n.t("recommend.knowledge")}</Text>
+            <Text style={styles.gridSubtext}>
+              {i18n.t("recommend.knowledgeSub")}
+            </Text>
           </TouchableOpacity>
 
         </View>

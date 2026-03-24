@@ -4,10 +4,12 @@ import API from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function DietScreen() {
   const [riskLevel, setRiskLevel] = useState("Level 1");
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadLatestAssessment();
@@ -26,21 +28,20 @@ export default function DietScreen() {
   };
 
   const fullDietPlan = [
-    { time: "6:00 AM - 7:00 AM", title: "Early Morning", icon: "sunny-outline", items: ["Warm water with methi seeds (soaked overnight)", "1 cup unsweetened green tea / black coffee"], color: "#0ea5e9" },
-    { time: "8:00 AM - 9:00 AM", title: "Breakfast", icon: "restaurant-outline", items: ["2 multigrain chapatis OR 1 bowl oats porridge", "1 boiled egg OR 1 glass toned milk", "½ apple or papaya slices"], color: "#2563eb" },
-    { time: "11:00 AM", title: "Mid-Morning Snack", icon: "leaf-outline", items: ["Small bowl sprouts salad (moong + cucumber)", "5–6 almonds or walnuts"], color: "#16a34a" },
-    { time: "1:00 PM", title: "Lunch", icon: "fast-food-outline", items: ["2 multigrain chapatis", "1 bowl dal (no ghee)", "1 cup seasonal vegetables", "1 bowl salad & 1 cup plain curd"], color: "#8b5cf6" },
-    { time: "4:00 PM - 5:00 PM", title: "Evening Snack", icon: "cafe-outline", items: ["1 cup roasted chana OR 1 veg sandwich (brown bread)", "Green tea (no sugar)"], color: "#f59e0b" },
-    { time: "7:00 PM - 8:00 PM", title: "Dinner", icon: "moon-outline", items: ["2 chapatis OR 1 cup brown rice", "1 bowl dal / lean chicken / fish curry", "1 cup stir-fried green vegetables", "Beetroot & Cabbage salad"], color: "#1e293b" },
-    { time: "10:00 PM", title: "Bedtime", icon: "bed-outline", items: ["1 glass warm toned milk (unsweetened)"], color: "#64748b" },
+    { time: "6:00 AM - 7:00 AM", title: t("diet.earlyMorning"), icon: "sunny-outline", items: [t("diet.item1"), t("diet.item2")], color: "#0ea5e9" },
+    { time: "8:00 AM - 9:00 AM", title: t("diet.breakfast"), icon: "restaurant-outline", items: [t("diet.item3"), t("diet.item4"), t("diet.item5")], color: "#2563eb" },
+    { time: "11:00 AM", title: t("diet.midSnack"), icon: "leaf-outline", items: [t("diet.item6"), t("diet.item7")], color: "#16a34a" },
+    { time: "1:00 PM", title: t("diet.lunch"), icon: "fast-food-outline", items: [t("diet.item8"), t("diet.item9"), t("diet.item10"), t("diet.item11")], color: "#8b5cf6" },
+    { time: "4:00 PM - 5:00 PM", title: t("diet.eveningSnack"), icon: "cafe-outline", items: [t("diet.item12"), t("diet.item13")], color: "#f59e0b" },
+    { time: "7:00 PM - 8:00 PM", title: t("diet.dinner"), icon: "moon-outline", items: [t("diet.item14"), t("diet.item15"), t("diet.item16"), t("diet.item17")], color: "#1e293b" },
+    { time: "10:00 PM", title: t("diet.bedtime"), icon: "bed-outline", items: [t("diet.item18")], color: "#64748b" },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
-          title: "My Diet Plan",
+          title: t("diet.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#f8fafc' },
@@ -56,17 +57,14 @@ export default function DietScreen() {
         
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Nutrition Plan</Text>
-            <Text style={styles.description}>
-              Target: 1500–1600 kcal | Low Glycemic Index
-            </Text>
+            <Text style={styles.title}>{t("diet.title")}</Text>
+            <Text style={styles.description}>{t("diet.subtitle")}</Text>
           </View>
           <View style={[styles.badge, badgeColor(riskLevel)]}>
             <Text style={styles.badgeText}>{riskLevel}</Text>
           </View>
         </View>
 
-        {/* Timeline Start */}
         <View style={styles.timelineContainer}>
           {fullDietPlan.map((item, index) => (
             <DietCard 
@@ -81,15 +79,12 @@ export default function DietScreen() {
           ))}
         </View>
 
-        {/* Pro-Tip Section */}
         <View style={styles.tipCard}>
           <View style={styles.tipHeader}>
             <Ionicons name="bulb" size={20} color="#92400e" />
-            <Text style={styles.tipTitle}>Expert Recommendation</Text>
+            <Text style={styles.tipTitle}>{t("diet.tipTitle")}</Text>
           </View>
-          <Text style={styles.tipText}>
-            Use olive or mustard oil in small amounts. Stay hydrated by drinking at least 2.5–3 liters of water daily.
-          </Text>
+          <Text style={styles.tipText}>{t("diet.tipText")}</Text>
         </View>
 
       </ScrollView>

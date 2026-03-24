@@ -3,59 +3,60 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } fr
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-
-const exercises = [
-  {
-    title: "Slow Walking",
-    sub: "3 kilometers/hour pace",
-    met: "3.0",
-    videoSource: require("../../assets/video/Slow_Walking.mp4"), 
-    icon: "walk-outline",
-    color: "#0ea5e9"
-  },
-  {
-    title: "Brisk Walking",
-    sub: "6 kilometers/hour pace",
-    met: "5.4",
-    videoSource: require("../../assets/video/Brisk_Walking.mp4"),
-    icon: "speedometer-outline",
-    color: "#10b981"
-  },
-{
-    title: "Deep Breath",
-    sub: "Slow, rhythmic diaphragmatic breathing",
-    met: "1.3", 
-    videoSource: require("../../assets/video/Animated_Deep_Breath.mp4"),
-    icon: "fitness-outline", 
-    color: "#06b6d4" 
-  },
-  {
-    title: "Yoga",
-    sub: "Daily half hour for sugar control",
-    met: "3.0",
-    videoSource: require("../../assets/video/yogaVideo.mp4"),
-    icon: "body-outline",
-    color: "#8b5cf6"
-  },
-  {
-    title: "Bicycling",
-    sub: "20 kilometers/hour pace",
-    met: "7.1",
-    videoSource: require("../../assets/video/Bicycling_Video.mp4"),
-    icon: "bicycle-outline",
-    color: "#f59e0b"
-  }
-];
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function ExerciseScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
+
+  const exercises = [
+    {
+      title: t("exercise.walkSlow"),
+      sub: t("exercise.walkSlowSub"),
+      met: "3.0",
+      videoSource: require("../../assets/video/Slow_Walking.mp4"), 
+      icon: "walk-outline",
+      color: "#0ea5e9"
+    },
+    {
+      title: t("exercise.walkBrisk"),
+      sub: t("exercise.walkBriskSub"),
+      met: "5.4",
+      videoSource: require("../../assets/video/Brisk_Walking.mp4"),
+      icon: "speedometer-outline",
+      color: "#10b981"
+    },
+    {
+      title: t("exercise.breath"),
+      sub: t("exercise.breathSub"),
+      met: "1.3", 
+      videoSource: require("../../assets/video/Animated_Deep_Breath.mp4"),
+      icon: "fitness-outline", 
+      color: "#06b6d4" 
+    },
+    {
+      title: t("exercise.yoga"),
+      sub: t("exercise.yogaSub"),
+      met: "3.0",
+      videoSource: require("../../assets/video/yogaVideo.mp4"),
+      icon: "body-outline",
+      color: "#8b5cf6"
+    },
+    {
+      title: t("exercise.cycling"),
+      sub: t("exercise.cyclingSub"),
+      met: "7.1",
+      videoSource: require("../../assets/video/Bicycling_Video.mp4"),
+      icon: "bicycle-outline",
+      color: "#f59e0b"
+    }
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
-          title: "My Exercise Plan",
+          title: t("exercise.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#f8fafc' },
@@ -69,10 +70,8 @@ export default function ExerciseScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Physical Activity</Text>
-          <Text style={styles.headerSub}>
-            Increasing METs (Metabolic Equivalents) helps muscles use glucose more effectively.
-          </Text>
+          <Text style={styles.headerTitle}>{t("exercise.title")}</Text>
+          <Text style={styles.headerSub}>{t("exercise.subtitle")}</Text>
         </View>
 
         {exercises.map((item, index) => (
@@ -89,7 +88,7 @@ export default function ExerciseScreen() {
               />
               <View style={[styles.overlayBadge, { backgroundColor: item.color }]}>
                 <Ionicons name={item.icon as any} size={16} color="white" />
-                <Text style={styles.badgeText}>Active</Text>
+                <Text style={styles.badgeText}>{t("exercise.active")}</Text>
               </View>
             </View>
 
@@ -108,15 +107,12 @@ export default function ExerciseScreen() {
           </View>
         ))}
 
-        {/* Doctor's Note */}
         <View style={styles.doctorNote}>
           <View style={styles.noteHeader}>
             <Ionicons name="medical" size={18} color="#0EA5E9" />
-            <Text style={styles.noteTitle}>Clinician's Note</Text>
+            <Text style={styles.noteTitle}>{t("exercise.noteTitle")}</Text>
           </View>
-          <Text style={styles.noteText}>
-            Regular movement prevents insulin resistance. Try taking the stairs (4.7 METs) whenever possible for extra benefit.
-          </Text>
+          <Text style={styles.noteText}>{t("exercise.noteText")}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

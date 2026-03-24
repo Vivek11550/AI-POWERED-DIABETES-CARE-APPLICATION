@@ -12,10 +12,12 @@ import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import API from "@/src/services/api";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function QuizDashboard() {
   const router = useRouter();
   const { token } = useAuth();
+  const { t } = useLanguage();
 
   const [quizData, setQuizData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -50,13 +52,10 @@ export default function QuizDashboard() {
     : 0;
 
   return (
-    // edges={['bottom', 'left', 'right']} ensures we don't double-pad the top notch 
-    // which is already handled by Stack.Screen
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen 
         options={{
-          title: "Knowledge Hub",
+          title: t("quiz.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
@@ -70,33 +69,33 @@ export default function QuizDashboard() {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Diabetes Awareness</Text>
-        <Text style={styles.subtitle}>Track your learning progress and improve your health knowledge.</Text>
+        <Text style={styles.title}>{t("quiz.title")}</Text>
+        <Text style={styles.subtitle}>{t("quiz.subtitle")}</Text>
 
         {!quizData ? (
           <View style={styles.emptyCard}>
             <View style={styles.iconCircle}>
               <Ionicons name="school-outline" size={40} color="#10B981" />
             </View>
-            <Text style={styles.emptyTitle}>Ready to learn?</Text>
-            <Text style={styles.emptySub}>Take your first quiz to assess your current understanding of diabetes management.</Text>
+            <Text style={styles.emptyTitle}>{t("quiz.ready")}</Text>
+            <Text style={styles.emptySub}>{t("quiz.readySub")}</Text>
             <TouchableOpacity
               style={styles.primaryButton}
               onPress={() => router.push("/quiz")}
             >
-              <Text style={styles.buttonText}>Start Initial Quiz</Text>
+              <Text style={styles.buttonText}>{t("quiz.start")}</Text>
               <Ionicons name="arrow-forward" size={18} color="white" style={{marginLeft: 8}} />
             </TouchableOpacity>
           </View>
         ) : (
           <>
             <View style={styles.mainCard}>
-              <Text style={styles.scoreLabel}>Current Proficiency</Text>
+              <Text style={styles.scoreLabel}>{t("quiz.proficiency")}</Text>
               <View style={styles.percentageRow}>
                 <Text style={styles.percentageText}>{percentage}%</Text>
                 <View style={[styles.statusBadge, { backgroundColor: percentage > 70 ? '#DCFCE7' : '#FEF3C7' }]}>
                   <Text style={[styles.statusText, { color: percentage > 70 ? '#166534' : '#92400E' }]}>
-                    {percentage > 70 ? 'Expert' : 'Learning'}
+                    {percentage > 70 ? t("quiz.expert") : t("quiz.learning")}
                   </Text>
                 </View>
               </View>
@@ -108,29 +107,29 @@ export default function QuizDashboard() {
               <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
                   <Text style={styles.statVal}>{quizData.initialScore}</Text>
-                  <Text style={styles.statLab}>Initial</Text>
+                  <Text style={styles.statLab}>{t("quiz.initial")}</Text>
                 </View>
                 <View style={[styles.statBox, styles.borderLeft]}>
                   <Text style={styles.statVal}>{quizData.latestScore}</Text>
-                  <Text style={styles.statLab}>Latest</Text>
+                  <Text style={styles.statLab}>{t("quiz.latest")}</Text>
                 </View>
                 <View style={[styles.statBox, styles.borderLeft]}>
                   <Text style={[styles.statVal, { color: '#10B981' }]}>+{quizData.improvement}</Text>
-                  <Text style={styles.statLab}>Growth</Text>
+                  <Text style={styles.statLab}>{t("quiz.growth")}</Text>
                 </View>
               </View>
             </View>
 
             <View style={styles.tipCard}>
               <Ionicons name="bulb-outline" size={20} color="#92400E" />
-              <Text style={styles.tipText}>Frequent quizzes help reinforce proper insulin management techniques.</Text>
+              <Text style={styles.tipText}>{t("quiz.tip")}</Text>
             </View>
 
             <TouchableOpacity
               style={styles.primaryButton}
               onPress={() => router.push("/quiz")}
             >
-              <Text style={styles.buttonText}>Retake Knowledge Test</Text>
+              <Text style={styles.buttonText}>{t("quiz.retake")}</Text>
               <Ionicons name="refresh-outline" size={18} color="white" style={{marginLeft: 8}} />
             </TouchableOpacity>
           </>

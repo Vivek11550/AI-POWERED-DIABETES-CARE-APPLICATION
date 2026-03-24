@@ -17,6 +17,7 @@ import { Stack, useRouter } from "expo-router";
 import API from "../../src/services/api";
 import { AUTH } from "../../src/services/endpoints";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function CreateDoctor() {
   const [email, setEmail] = useState("");
@@ -26,14 +27,14 @@ export default function CreateDoctor() {
 
   const { logout } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
   const role = "doctor";
 
   const register = async () => {
     if (!email || !password) {
-      alert("Please enter both email and password");
+      alert(t("admin.emptyFields"));
       return;
     }
-
     try {
       setLoading(true);
       await API.post(AUTH.REGISTER, {
@@ -42,11 +43,11 @@ export default function CreateDoctor() {
         role,
       });
 
-      alert("Doctor account created successfully");
+      alert(t("admin.success"));
       setEmail("");
       setPassword("");
     } catch (error: any) {
-      const message = error?.response?.data?.message || "Registration failed";
+      const message = error?.response?.data?.message || t("admin.failed");
       alert(message);
     } finally {
       setLoading(false);
@@ -58,7 +59,7 @@ export default function CreateDoctor() {
       {/* ================= HEADER CONFIG ================= */}
       <Stack.Screen
         options={{
-          title: "Admin Dashboard",
+          title: t("admin.dashboardTitle"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
@@ -83,39 +84,39 @@ export default function CreateDoctor() {
 
           <View style={styles.headerSection}>
             <View style={styles.adminBadge}>
-              <Text style={styles.adminBadgeText}>ADMIN PANEL</Text>
+              <Text style={styles.adminBadgeText}>{t("admin.badge")}</Text>
             </View>
-            <Text style={styles.title}>Register New Doctor</Text>
-            <Text style={styles.subtitle}>Create official credentials for nursing college experts</Text>
+            <Text style={styles.title}>{t("admin.createDoctorTitle")}</Text>
+            <Text style={styles.subtitle}>{t("admin.subtitle")}</Text>
           </View>
 
           <View style={styles.card}>
             <View style={styles.infoBox}>
               <Ionicons name="information-circle" size={20} color="#0369a1" />
-              <Text style={styles.infoText}>This account will be assigned the 'Doctor' role by default.</Text>
+              <Text style={styles.infoText}>{t("admin.infoText")}</Text>
             </View>
 
             {/* Email Field */}
-            <Text style={styles.label}>Doctor's Email</Text>
+            <Text style={styles.label}>{t("admin.emailLabel")}</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              placeholder="doctor@nursingcollege.edu"
+              placeholder={t("admin.emailPlaceholder")}
               placeholderTextColor="#94A3B8"
             />
 
             {/* Password Field */}
-            <Text style={styles.label}>SET Password</Text>
+            <Text style={styles.label}>{t("admin.passwordLabel")}</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.passwordInput}
                 value={password}
                 secureTextEntry={!showPassword}
                 onChangeText={setPassword}
-                placeholder="Set initial password"
+                placeholder={t("admin.passwordPlaceholder")}
                 placeholderTextColor="#94A3B8"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
@@ -136,7 +137,9 @@ export default function CreateDoctor() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Text style={styles.registerBtnText}>Create Doctor Account</Text>
+                  <Text style={styles.registerBtnText}>
+                    {t("admin.createDoctorBtn")}
+                  </Text>
                   <Ionicons name="person-add-outline" size={20} color="white" style={{ marginLeft: 8 }} />
                 </>
               )}
@@ -145,14 +148,14 @@ export default function CreateDoctor() {
 
             <View style={{ marginTop: 20 }}>
               <Button
-                title="View All Doctors"
+                title={t("admin.viewDoctors")}
                 onPress={() => router.push("/admin/doctorList")}
               />
             </View>
 
             <View style={{ marginTop: 10 }}>
               <Button
-                title="View All Patients"
+                title={t("admin.viewPatients")}
                 onPress={() => router.push("/admin/patientList")}
               />
             </View>
@@ -160,7 +163,7 @@ export default function CreateDoctor() {
           </View>
 
           <Text style={styles.footerNote}>
-            The doctor can complete their profile (Name, Specialization, etc.) once they log in for the first time.
+            {t("admin.footerNote")}
           </Text>
 
         </ScrollView>

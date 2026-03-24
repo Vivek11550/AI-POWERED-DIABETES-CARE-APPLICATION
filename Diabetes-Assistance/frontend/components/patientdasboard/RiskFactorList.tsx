@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import RiskFactorCard from "./RiskFactorCard";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export interface AssessmentData {
   bmi: number;
@@ -16,6 +17,8 @@ export default function RiskFactorList({
 }: {
   assessment: AssessmentData;
 }) {
+  const { t } = useLanguage();
+
   return (
     <View>
       <Text
@@ -25,37 +28,45 @@ export default function RiskFactorList({
           marginBottom: 10,
         }}
       >
-        Factors Influencing Your Risk
+        {t("riskFactors.title")}
       </Text>
 
       <RiskFactorCard
-        title="BMI"
+        title={t("riskFactors.bmi")}
         value={`BMI ${assessment.bmi}`}
       />
 
       <RiskFactorCard
-        title="Fasting Sugar"
+        title={t("riskFactors.fasting")}
         value={`${assessment.fastingSugar} mg/dL`}
       />
 
       <RiskFactorCard
-        title="Postprandial Sugar"
+        title={t("riskFactors.postprandial")}
         value={`${assessment.postPrandialSugar} mg/dL`}
       />
 
       <RiskFactorCard
-        title="HbA1c"
+        title={t("riskFactors.hba1c")}
         value={`${assessment.hba1c}%`}
       />
 
       <RiskFactorCard
-        title="Foot Ulcer"
-        value={assessment.footUlcer ? "Present" : "Absent"}
+        title={t("riskFactors.footUlcer")}
+        value={
+          assessment.footUlcer
+            ? t("common.present")
+            : t("common.absent")
+        }
       />
 
       <RiskFactorCard
-        title="Neuropathy"
-        value={assessment.neuropathy ? "Present" : "Absent"}
+        title={t("riskFactors.neuropathy")}
+        value={
+          assessment.neuropathy
+            ? t("common.present")
+            : t("common.absent")
+        }
       />
     </View>
   );

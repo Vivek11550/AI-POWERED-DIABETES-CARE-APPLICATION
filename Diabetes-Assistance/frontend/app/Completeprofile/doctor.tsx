@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import API from "../../src/services/api";
 import { useRouter, Stack } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function DoctorProfile() {
   const [fullName, setFullName] = useState("");
@@ -23,6 +24,7 @@ export default function DoctorProfile() {
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [experienceYears, setExperienceYears] = useState("");
+  const { t } = useLanguage();
   
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +34,7 @@ export default function DoctorProfile() {
   const submitProfile = async () => {
     // Basic Validation for required fields
     if (!fullName || !specialization || !qualification) {
-      alert("Please fill in Name, Qualification, and Specialization.");
+      alert(t("doctorProfile.fillRequired"));
       return;
     }
 
@@ -53,11 +55,11 @@ export default function DoctorProfile() {
         }
       );
 
-      alert("Profile saved successfully");
+      alert(t("doctorProfile.success"));
       await login(token!, role!, true);
       router.replace("/dashboard/doctor");
     } catch (err: any) {
-      alert("Error saving profile");
+      alert(t("doctorProfile.error"));
     } finally {
       setLoading(false);
     }
@@ -67,7 +69,7 @@ export default function DoctorProfile() {
     <SafeAreaView style={styles.root}>
       <Stack.Screen 
         options={{
-          title: "Doctor Profile",
+          title: t("doctorProfile.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
@@ -89,16 +91,16 @@ export default function DoctorProfile() {
             <View style={styles.iconCircle}>
               <Ionicons name="medical" size={32} color="#FFF" />
             </View>
-            <Text style={styles.title}>Professional Setup</Text>
-            <Text style={styles.subtitle}>Complete your profile to start managing patients</Text>
+            <Text style={styles.title}>{t("doctorProfile.title")}</Text>  
+            <Text style={styles.subtitle}>{t("doctorProfile.subtitle")}</Text>
           </View>
 
           <View style={styles.card}>
             {/* Full Name */}
-            <Text style={styles.label}>Full Name *</Text>
+            <Text style={styles.label}>{t("doctorProfile.fullName")} *</Text>
             <TextInput
               style={styles.input}
-              placeholder="Dr. John Doe"
+              placeholder={t("doctorProfile.placeholderName")}
               onChangeText={setFullName}
               placeholderTextColor="#94A3B8"
             />
@@ -106,19 +108,19 @@ export default function DoctorProfile() {
             {/* Qualification & Specialization */}
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 10 }}>
-                <Text style={styles.label}>Qualification *</Text>
+                <Text style={styles.label}>{t("doctorProfile.qualification")} *</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="MBBS, MD"
+                  placeholder={t("doctorProfile.placeholderQualification")}
                   onChangeText={setQualification}
                   placeholderTextColor="#94A3B8"
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Experience</Text>
+                <Text style={styles.label}>{t("doctorProfile.experience")}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Years"
+                  placeholder={t("doctorProfile.placeholderExperience")}
                   keyboardType="numeric"
                   onChangeText={setExperienceYears}
                   placeholderTextColor="#94A3B8"
@@ -126,10 +128,10 @@ export default function DoctorProfile() {
               </View>
             </View>
 
-            <Text style={styles.label}>Specialization *</Text>
+            <Text style={styles.label}>{t("doctorProfile.specialization")} *</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Diabetologist"
+              placeholder={t("doctorProfile.placeholderSpecialization")}
               onChangeText={setSpecialization}
               placeholderTextColor="#94A3B8"
             />
@@ -137,18 +139,22 @@ export default function DoctorProfile() {
             {/* Optional Fields */}
             <View style={styles.divider} />
             
-            <Text style={styles.label}>Registration No (Optional)</Text>
+            <Text style={styles.label}>
+              {t("doctorProfile.regNo")} (Optional)
+            </Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. MC-12345"
+              placeholder={t("doctorProfile.placeholderReg")}
               onChangeText={setRegistrationNumber}
               placeholderTextColor="#94A3B8"
             />
 
-            <Text style={styles.label}>Contact Number (Optional)</Text>
+            <Text style={styles.label}>
+              {t("doctorProfile.contact")} (Optional)
+            </Text>
             <TextInput
               style={styles.input}
-              placeholder="+91 00000 00000"
+              placeholder={t("doctorProfile.placeholderPhone")}
               keyboardType="phone-pad"
               maxLength={10}
               onChangeText={setPhone}
@@ -164,7 +170,7 @@ export default function DoctorProfile() {
             {loading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.buttonText}>Complete Profile</Text>
+              <Text style={styles.buttonText}>{t("doctorProfile.completeBtn")}</Text>
             )}
           </TouchableOpacity>
 

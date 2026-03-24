@@ -8,22 +8,26 @@ import {
   RefreshControl,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context"; // Correct library
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
+
 
 const { width } = Dimensions.get("window");
 
 export default function DoctorDashboard() {
   const router = useRouter();
   const { logout } = useAuth();
+  const { t } = useLanguage();
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<number>(3); 
+  const [activeTab, setActiveTab] = useState<number>(3);
 
   const [summary, setSummary] = useState({ level1: 0, level2: 0, level3: 0 });
   const [patients, setPatients] = useState<{ [key: number]: any[] }>({
@@ -68,15 +72,14 @@ export default function DoctorDashboard() {
   }
 
   return (
-    // edges={['top']} ensures the content doesn't go under the notch
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Stack.Screen options={{ headerShown: false }} /> 
+      <Stack.Screen options={{ headerShown: false }} />
 
-      {/* --- CUSTOM TOP BAR --- */}
+      {/* TOP BAR */}
       <View style={styles.topBar}>
         <View>
-          <Text style={styles.welcomeText}>Expert Panel</Text>
-          <Text style={styles.doctorTitle}>Clinical Overview</Text>
+          <Text style={styles.welcomeText}>{t("doctorDashboard.expertPanel")}</Text>
+          <Text style={styles.doctorTitle}>{t("doctorDashboard.clinicalOverview")}</Text>
         </View>
         <View style={styles.topActions}>
           <TouchableOpacity 
@@ -91,19 +94,19 @@ export default function DoctorDashboard() {
         </View>
       </View>
 
-      {/* --- ANALYTICS CARDS --- */}
+      {/* ACTION CARDS */}
       <View style={styles.analyticsRow}>
         <TouchableOpacity onPress={() => router.push("/doctor/patientAssessments")} style={styles.mainActionCard}>
            <Ionicons name="clipboard" size={24} color="#0EA5E9" />
-           <Text style={styles.actionCardLabel}>All Assessments</Text>
+           <Text style={styles.actionCardLabel}>{t("doctorDashboard.allAssessments")}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push("/export/exportData" as any)} style={styles.mainActionCard}>
            <Ionicons name="cloud-download" size={24} color="#10B981" />
-           <Text style={styles.actionCardLabel}>Export Data</Text>
+           <Text style={styles.actionCardLabel}>{t("doctorDashboard.exportData")}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* --- TAB NAVIGATION --- */}
+      {/* TABS */}
       <View style={styles.tabContainer}>
         {[3, 2, 1].map((level) => (
           <TouchableOpacity
@@ -112,13 +115,16 @@ export default function DoctorDashboard() {
             style={[
               styles.tab,
               activeTab === level && styles.activeTab,
-              activeTab === level && { borderBottomColor: level === 3 ? '#EF4444' : level === 2 ? '#F59E0B' : '#10B981' }
+              activeTab === level && {
+                borderBottomColor:
+                  level === 3 ? "#EF4444" : level === 2 ? "#F59E0B" : "#10B981",
+              },
             ]}
           >
             <Text style={[styles.tabLabel, activeTab === level && styles.activeTabLabel]}>
-              Level {level}
+              {t(`doctorDashboard.level${level}`)}
             </Text>
-            <Text style={[styles.tabCount, activeTab === level && { color: '#0F172A' }]}>
+            <Text style={[styles.tabCount, activeTab === level && { color: "#0F172A" }]}>
               {summary[`level${level}` as keyof typeof summary]}
             </Text>
           </TouchableOpacity>
@@ -131,27 +137,35 @@ export default function DoctorDashboard() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <Text style={styles.listSectionTitle}>
-          {activeTab === 3 ? "🔥 High Priority" : activeTab === 2 ? "⚠️ Moderate Risk" : "✅ Stable Patients"}
+          {activeTab === 3
+            ? t("doctorDashboard.highPriority")
+            : activeTab === 2
+            ? t("doctorDashboard.moderateRisk")
+            : t("doctorDashboard.stablePatients")}
         </Text>
 
         {patients[activeTab].length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="file-tray-outline" size={40} color="#CBD5E1" />
-            <Text style={styles.emptyText}>No patients in this category</Text>
+            <Text style={styles.emptyText}>{t("doctorDashboard.noPatients")}</Text>
           </View>
         ) : (
           patients[activeTab].map((patient) => (
             <View key={patient._id} style={styles.patientCard}>
               <View style={styles.patientInfo}>
-                <Text style={styles.patientEmail} numberOfLines={1}>{patient.userId?.email || "No Email"}</Text>
-                <Text style={styles.patientId}>Patient ID: {patient.userId?._id?.substring(0, 12)}</Text>
+                <Text style={styles.patientEmail} numberOfLines={1}>
+                  {patient.userId?.email || t("doctorDashboard.noEmail")}
+                </Text>
+                <Text style={styles.patientId}>
+                  {t("doctorDashboard.patientId")}: {patient.userId?._id?.substring(0, 12)}
+                </Text>
               </View>
               <TouchableOpacity 
                 style={styles.chatBtn}
                 onPress={() => router.push(`/chat?patientId=${patient.userId?._id}` as any)}
               >
                 <Ionicons name="chatbubble-ellipses" size={20} color="white" />
-                <Text style={styles.chatBtnText}>Chat</Text>
+                <Text style={styles.chatBtnText}>{t("doctorDashboard.chat")}</Text>
               </TouchableOpacity>
             </View>
           ))

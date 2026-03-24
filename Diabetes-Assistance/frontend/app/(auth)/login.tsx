@@ -60,7 +60,7 @@ export default function Login() {
 
         <View style={styles.container}>
           <View style={styles.card}>
-            <Text style={styles.Heading}>Diabetic Care</Text>
+            <Text style={styles.Heading}>Diabetic Support</Text>
 
             <Image
               source={require("../../assets/images/bvdu-logo.png")}

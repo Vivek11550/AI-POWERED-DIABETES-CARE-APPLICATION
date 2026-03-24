@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../../src/services/api";
 import { useRouter, Stack } from "expo-router";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function Assessment() {
   // KEPT ORIGINAL NAMES TO MATCH YOUR API
@@ -22,7 +23,8 @@ export default function Assessment() {
   const [fasting, setFasting] = useState("");
   const [pp, setPP] = useState("");
   const [hba1c, setHba1c] = useState("");
-
+  const { t } = useLanguage();    
+  
   const [footUlcer, setFootUlcer] = useState(false);
   const [neuropathy, setNeuropathy] = useState(false);
 
@@ -46,7 +48,10 @@ export default function Assessment() {
 
   const submitAssessment = async () => {
     if (!weight || !fasting || !pp || !hba1c) {
-      Alert.alert("Error", "Please fill all required medical values.");
+      Alert.alert(
+        t("assessment.errorTitle"),
+        t("assessment.fillAll")
+      );
       return;
     }
 
@@ -80,7 +85,10 @@ export default function Assessment() {
     } catch (error: any) {
       // Improved error logging to help you debug
       const errorMsg = error?.response?.data?.message || "Check your internet or API logs.";
-      Alert.alert("Submission Failed", errorMsg);
+      Alert.alert(
+        t("assessment.submitFail"),
+        errorMsg || t("assessment.networkError")
+      );
     } finally {
       setLoading(false);
     }
@@ -107,7 +115,7 @@ export default function Assessment() {
       {/* ================= UPDATED HEADER ================= */}
       <Stack.Screen 
         options={{
-          title: "Health Assessment",
+          title: t("assessment.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
@@ -120,59 +128,84 @@ export default function Assessment() {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Risk Analysis</Text>
-        <Text style={styles.subtitle}>Fill in your current medical readings</Text>
+        <Text style={styles.title}>{t("assessment.title")}</Text>
+        <Text style={styles.subtitle}>{t("assessment.subtitle")}</Text>
 
         {/* --- Metrics Card --- */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Blood & Weight</Text>
+          <Text style={styles.cardTitle}>{t("assessment.bloodWeight")}</Text>
           
-          <Text style={styles.fieldLabel}>Weight (kg)</Text>
+          <Text style={styles.fieldLabel}>
+            {t("assessment.weight")} (kg)
+          </Text>
           <TextInput placeholder="70" keyboardType="numeric" value={weight} onChangeText={setWeight} style={styles.input} />
 
           <View style={styles.row}>
             <View style={{ flex: 1, marginRight: 10 }}>
-              <Text style={styles.fieldLabel}>Fasting</Text>
+              <Text style={styles.fieldLabel}>
+                {t("assessment.fasting")}
+              </Text>
               <TextInput placeholder="mg/dL" keyboardType="numeric" value={fasting} onChangeText={setFasting} style={styles.input} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>PP Sugar</Text>
+              <Text style={styles.fieldLabel}>
+                {t("assessment.ppSugar")}
+              </Text>
               <TextInput placeholder="mg/dL" keyboardType="numeric" value={pp} onChangeText={setPP} style={styles.input} />
             </View>
           </View>
 
-          <Text style={styles.fieldLabel}>HbA1c (%)</Text>
+          <Text style={styles.fieldLabel}>
+            {t("assessment.hba1c")} (%)
+          </Text>
           <TextInput placeholder="6.5" keyboardType="numeric" value={hba1c} onChangeText={setHba1c} style={styles.input} />
         </View>
 
         {/* --- Urine Card --- */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Urine Tests</Text>
-          <Text style={styles.innerLabel}>Urine Glucose</Text>
+          <Text style={styles.cardTitle}>{t("assessment.urineTests")}</Text>
+          <Text style={styles.innerLabel}>
+            {t("assessment.urineGlucose")}
+          </Text>
           <Selector options={["+", "++", "+++", "++++"]} value={urineGlucose} setValue={setUrineGlucose} />
           
-          <Text style={[styles.innerLabel, { marginTop: 10 }]}>Urine Ketone</Text>
+          <Text style={styles.innerLabel}>
+            {t("assessment.urineKetone")}
+          </Text>
           <Selector options={["+", "++", "+++", "++++"]} value={urineKetone} setValue={setUrineKetone} />
         </View>
 
         {/* --- Conditions Card --- */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Symptoms & History</Text>
+          <Text style={styles.cardTitle}>{t("assessment.symptoms")}</Text>
           
           <View style={styles.switchRow}>
-            <Text style={styles.switchText}>Pre-Diabetes</Text>
+            <Text style={styles.switchText}>
+              {t("assessment.preDiabetes")}
+            </Text>
             <Switch value={preDiabetes} onValueChange={setPreDiabetes} trackColor={{ true: "#BAE6FD" }} thumbColor={preDiabetes ? "#0EA5E9" : "#f4f3f4"} />
           </View>
           {preDiabetes && <Selector options={["<1yr", "1-5yr", "6-10yr", ">10yr"]} value={preDuration} setValue={setPreDuration} />}
 
           <View style={styles.switchRow}>
-            <Text style={styles.switchText}>Diabetes</Text>
+            <Text style={styles.switchText}>
+              {t("assessment.diabetes")}
+            </Text>
             <Switch value={diabetes} onValueChange={setDiabetes} trackColor={{ true: "#BAE6FD" }} thumbColor={diabetes ? "#0EA5E9" : "#f4f3f4"} />
           </View>
           {diabetes && <Selector options={["<1yr", "1-5yr", "6-10yr", ">10yr"]} value={diabetesDuration} setValue={setDiabetesDuration} />}
 
-          <View style={styles.switchRow}><Text style={styles.switchText}>Foot Ulcer</Text><Switch value={footUlcer} onValueChange={setFootUlcer} /></View>
-          <View style={styles.switchRow}><Text style={styles.switchText}>Neuropathy</Text><Switch value={neuropathy} onValueChange={setNeuropathy} /></View>
+          <View style={styles.switchRow}>
+            <Text style={styles.switchText}>
+                {t("assessment.footUlcer")}
+            </Text>
+            <Switch value={footUlcer} onValueChange={setFootUlcer} /></View>
+          <View style={styles.switchRow}>
+            <Text style={styles.switchText}>
+              {t("assessment.neuropathy")}
+            </Text>
+            <Switch value={neuropathy} onValueChange={setNeuropathy} />
+          </View>
         </View>
 
         <TouchableOpacity 
@@ -180,7 +213,7 @@ export default function Assessment() {
           disabled={loading} 
           style={[styles.btn, loading && { opacity: 0.6 }]}
         >
-          {loading ? <ActivityIndicator color="white" /> : <Text style={styles.btnText}>Analyze Health Risk</Text>}
+          {loading ? <ActivityIndicator color="white" /> : <Text style={styles.btnText}>{t("assessment.analyzeBtn")}</Text>}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

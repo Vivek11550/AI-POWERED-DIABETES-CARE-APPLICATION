@@ -13,12 +13,14 @@ import API from "@/src/services/api";
 import { useRouter, Stack } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 const { width } = Dimensions.get("window");
 
 export default function QuizScreen() {
   const router = useRouter();
   const { token } = useAuth();
+  const { t } = useLanguage();
 
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -68,7 +70,7 @@ export default function QuizScreen() {
         router.replace("/dashboard/patient");
       }, 3000);
     } catch (err) {
-      alert("Error submitting quiz");
+      alert(t("quiz.error"));
     }
   };
 
@@ -92,13 +94,13 @@ export default function QuizScreen() {
             <View style={styles.successIconCircle}>
               <Ionicons name="trophy" size={50} color="#10B981" />
             </View>
-            <Text style={styles.resultTitle}>Quiz Completed!</Text>
-            <Text style={styles.resultScoreLabel}>Accuracy Score</Text>
+            <Text style={styles.resultTitle}>{t("quiz.completed")}</Text>
+            <Text style={styles.resultScoreLabel}>{t("quiz.scoreLabel")}</Text>
             <Text style={styles.resultScoreValue}>
               {score} <Text style={{fontSize: 20, color: '#94A3B8'}}>/ {diabetesQuiz.length}</Text>
             </Text>
             <View style={styles.loadingFooter}>
-              <Text style={styles.resultMessage}>Syncing results to your profile...</Text>
+              <Text style={styles.resultMessage}>{t("quiz.sync")}</Text>
             </View>
           </View>
         </Animated.View>
@@ -109,11 +111,10 @@ export default function QuizScreen() {
   /* ================= QUIZ SCREEN ================= */
 
   return (
-    // FIX 1: Remove 'top' from edges. The Stack header handles the notch.
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Stack.Screen 
         options={{ 
-          title: "Health Quiz", 
+          title: t("quiz.headerQuiz"), 
           headerShown: true, 
           headerShadowVisible: false,
           headerStyle: { backgroundColor: '#F8FAFC' },
@@ -125,10 +126,9 @@ export default function QuizScreen() {
         }} 
       />
 
-      {/* Header Info */}
       <View style={styles.header}>
         <Text style={styles.counter}>
-          QUESTION <Text style={{color: '#0F172A'}}>{current + 1}</Text> OF {diabetesQuiz.length}
+          {t("quiz.question")} <Text style={{color: '#0F172A'}}>{current + 1}</Text> {t("quiz.of")} {diabetesQuiz.length}
         </Text>
         <View style={styles.progressTrack}>
           <View style={[styles.progressBar, { width: `${progress}%` }]} />
@@ -140,10 +140,14 @@ export default function QuizScreen() {
         entering={FadeInRight.duration(400)}
         style={styles.quizArea}
       >
-        <Text style={styles.questionText}>{question.question}</Text>
+        {/* ✅ TRANSLATED QUESTION */}
+        {/* ✅ TRANSLATED QUESTION */}
+        <Text style={styles.questionText}>
+          {t(`quizData.q${question.id}.question`)}
+        </Text>
 
         <View style={styles.optionsList}>
-          {question.options.map((option) => (
+          {question.options.map((option, index) => (
             <TouchableOpacity
               key={option}
               activeOpacity={0.8}
@@ -153,12 +157,15 @@ export default function QuizScreen() {
               ]}
               onPress={() => selectAnswer(option)}
             >
+              {/* ✅ TRANSLATED OPTIONS */}
+                            {/* ✅ TRANSLATED OPTIONS */}
               <Text style={[
                 styles.optionText,
                 selected === option && styles.selectedOptionText,
               ]}>
-                {option}
+                {t(`quizData.q${question.id}.o${index + 1}`)}
               </Text>
+
               {selected === option && (
                 <Ionicons name="checkmark-circle" size={24} color="#10B981" />
               )}
@@ -167,7 +174,6 @@ export default function QuizScreen() {
         </View>
       </Animated.View>
 
-      {/* Footer Navigation */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.nextButton, !selected && styles.disabledBtn]}
@@ -175,7 +181,9 @@ export default function QuizScreen() {
           disabled={!selected}
         >
           <Text style={styles.nextButtonText}>
-            {current === diabetesQuiz.length - 1 ? "Submit Assessment" : "Next Question"}
+            {current === diabetesQuiz.length - 1
+              ? t("quiz.submit")
+              : t("quiz.next")}
           </Text>
           <Ionicons name="arrow-forward" size={20} color="white" style={{marginLeft: 8}} />
         </TouchableOpacity>
@@ -185,7 +193,6 @@ export default function QuizScreen() {
 }
 
 const styles = StyleSheet.create({
-  // FIX 2: Removed marginTop: 35. Native header manages this space now.
   container: { flex: 1, backgroundColor: "#F8FAFC" },
   header: { padding: 24, paddingBottom: 10 },
   counter: { fontSize: 12, fontWeight: "800", color: "#94A3B8", letterSpacing: 1, marginBottom: 12 },
@@ -213,6 +220,7 @@ const styles = StyleSheet.create({
   selectedOptionBtn: { borderColor: "#10B981", backgroundColor: "#F0FDF4" },
   optionText: { fontSize: 16, color: "#475569", fontWeight: "600", flex: 1 },
   selectedOptionText: { color: "#166534" },
+
   footer: { padding: 24, paddingBottom: 30 },
   nextButton: {
     backgroundColor: "#10B981",

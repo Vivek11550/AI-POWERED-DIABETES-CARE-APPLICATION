@@ -10,12 +10,12 @@ import {
   Platform
 } from "react-native";
 import { useEffect, useState, useCallback } from "react";
-// Using useSafeAreaInsets for manual notch control
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons"; 
 import API from "../../src/services/api";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function PatientAssessments() {
     const insets = useSafeAreaInsets();
@@ -27,6 +27,7 @@ export default function PatientAssessments() {
 
     const { token } = useAuth();
     const router = useRouter();
+    const { t } = useLanguage();
 
     const fetchPatients = useCallback(async () => {
         try {
@@ -66,26 +67,22 @@ export default function PatientAssessments() {
         return (
             <View style={styles.center}>
                 <ActivityIndicator size="large" color="#0EA5E9" />
-                <Text style={styles.loadingText}>Syncing medical records...</Text>
+                <Text style={styles.loadingText}>{t("patientAssess.loading")}</Text>
             </View>
         );
     }
 
     return (
-        // We use edges={['bottom', 'left', 'right']} because the top is handled by the Stack Header
-        <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right',]}>
+        <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
             <Stack.Screen 
                 options={{ 
-                    headerShown: true, // Ensure header is visible
-                    title: "Medical Archives", 
+                    headerShown: true,
+                    title: t("patientAssess.header"),
                     headerShadowVisible: false,
                     headerStyle: { backgroundColor: '#FFFFFF' },
                     headerTitleStyle: { fontWeight: '800', color: '#0F172A' },
                     headerLeft: () => (
-                        <TouchableOpacity 
-                            onPress={() => router.back()} 
-                            style={styles.headerBackBtn}
-                        >
+                        <TouchableOpacity onPress={() => router.back()} style={styles.headerBackBtn}>
                             <Ionicons name="chevron-back" size={28} color="#0F172A" />
                         </TouchableOpacity>
                     )
@@ -96,12 +93,11 @@ export default function PatientAssessments() {
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 style={{ flex: 1 }}
             >
-                {/* --- SEARCH HEADER --- */}
                 <View style={styles.searchHeader}>
                     <View style={styles.searchBox}>
                         <Ionicons name="search-outline" size={20} color="#94A3B8" />
                         <TextInput 
-                            placeholder="Find patient by name..."
+                            placeholder={t("patientAssess.search")}
                             style={styles.input}
                             value={searchQuery}
                             onChangeText={handleSearch}
@@ -123,7 +119,7 @@ export default function PatientAssessments() {
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
                             <Ionicons name="documents-outline" size={60} color="#E2E8F0" />
-                            <Text style={styles.emptyText}>No matching patient records found.</Text>
+                            <Text style={styles.emptyText}>{t("patientAssess.noRecords")}</Text>
                         </View>
                     }
                     renderItem={({ item }: any) => {
@@ -140,10 +136,14 @@ export default function PatientAssessments() {
                                     </View>
                                     <View style={styles.infoCol}>
                                         <Text style={styles.nameText}>{item.patient.fullName}</Text>
-                                        <Text style={styles.subText}>{item.patient.phone || 'No Phone'}</Text>
+                                        <Text style={styles.subText}>
+                                            {item.patient.phone || t("patientAssess.noPhone")}
+                                        </Text>
                                     </View>
                                     <View style={styles.rightInfo}>
-                                        <Text style={styles.countTag}>{item.assessments.length} Entry</Text>
+                                        <Text style={styles.countTag}>
+                                            {item.assessments.length} {t("patientAssess.entry")}
+                                        </Text>
                                         <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={18} color="#CBD5E1" />
                                     </View>
                                 </TouchableOpacity>
@@ -152,26 +152,36 @@ export default function PatientAssessments() {
                                     <View style={styles.detailsArea}>
                                         <View style={styles.metaGrid}>
                                             <View style={styles.metaItem}>
-                                                <Text style={styles.metaLabel}>TYPE</Text>
+                                                <Text style={styles.metaLabel}>{t("patientAssess.type")}</Text>
                                                 <Text style={styles.metaVal}>{item.patient.diabetesType}</Text>
                                             </View>
                                             <View style={styles.metaItem}>
-                                                <Text style={styles.metaLabel}>GENDER</Text>
+                                                <Text style={styles.metaLabel}>{t("patientAssess.gender")}</Text>
                                                 <Text style={styles.metaVal}>{item.patient.gender}</Text>
                                             </View>
                                         </View>
 
-                                        <Text style={styles.timelineTitle}>Recent History</Text>
+                                        <Text style={styles.timelineTitle}>{t("patientAssess.history")}</Text>
                                         {item.assessments.map((asm: any) => (
                                             <View key={asm._id} style={[styles.asmRow, { borderLeftColor: getRiskColor(asm.riskLevel) }]}>
                                                 <View style={styles.asmHeader}>
-                                                    <Text style={[styles.riskTag, { color: getRiskColor(asm.riskLevel) }]}>{asm.riskLevel}</Text>
-                                                    <Text style={styles.dateText}>{new Date(asm.createdAt).toLocaleDateString()}</Text>
+                                                    <Text style={[styles.riskTag, { color: getRiskColor(asm.riskLevel) }]}>
+                                                        {asm.riskLevel}
+                                                    </Text>
+                                                    <Text style={styles.dateText}>
+                                                        {new Date(asm.createdAt).toLocaleDateString()}
+                                                    </Text>
                                                 </View>
                                                 <View style={styles.metricsStrip}>
-                                                    <Text style={styles.metricItem}>HbA1c: <Text style={styles.boldMetric}>{asm.hba1c || '--'}</Text></Text>
-                                                    <Text style={styles.metricItem}>Sugar: <Text style={styles.boldMetric}>{asm.fastingSugar || '--'}</Text></Text>
-                                                    <Text style={styles.metricItem}>BMI: <Text style={styles.boldMetric}>{asm.bmi || '--'}</Text></Text>
+                                                    <Text style={styles.metricItem}>
+                                                        HbA1c: <Text style={styles.boldMetric}>{asm.hba1c || '--'}</Text>
+                                                    </Text>
+                                                    <Text style={styles.metricItem}>
+                                                        {t("patientAssess.sugar")}: <Text style={styles.boldMetric}>{asm.fastingSugar || '--'}</Text>
+                                                    </Text>
+                                                    <Text style={styles.metricItem}>
+                                                        BMI: <Text style={styles.boldMetric}>{asm.bmi || '--'}</Text>
+                                                    </Text>
                                                 </View>
                                             </View>
                                         ))}

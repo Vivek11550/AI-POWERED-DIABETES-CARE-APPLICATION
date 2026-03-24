@@ -1,4 +1,3 @@
-
 import {
   ScrollView,
   TextInput,
@@ -20,14 +19,16 @@ import ProfileTitle from "../../components/profile/ProfileTitle";
 import InfoRow from "../../components/profile/InfoRow";
 import { useAuth } from "@/src/context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "@/src/context/LanguageContext";
 
-export default function DoctorProfile() {
+export default function doctorProfile() {
   const [profile, setProfile] = useState<any>({});
   const [edit, setEdit] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const { logout } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadProfile();
@@ -59,10 +60,10 @@ export default function DoctorProfile() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      alert("Profile updated successfully");
+      alert(t("doctorProfile1.success"));
       setEdit(false);
     } catch (error) {
-      alert("Error saving profile");
+      alert(t("doctorProfile1.error"));
     }
   };
 
@@ -76,150 +77,117 @@ export default function DoctorProfile() {
 
   return (
     <SafeAreaView style={styles.root} edges={["bottom"]}>
-      {/* HEADER CONFIG */}
-
       <Stack.Screen
         options={{
-          title: "Professional Profile",
+          title: t("doctorProfile1.header"),
           headerShown: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: "#FFFFFF" },
           headerTitleStyle: { color: "#0F172A", fontWeight: "700" },
-          // headerTopInsetEnabled: true,
           headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backBtn}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="chevron-back" size={28} color="#0F172A" />
             </TouchableOpacity>
           ),
         }}
       />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
-        {/* HEADER SECTION */}
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        
         <View style={styles.headerCard}>
           <ProfileAvatar />
 
           <ProfileTitle
-            name={profile.fullName || "Doctor"}
-            subtitle={profile.specialization || "Medical Specialist"}
+            name={profile.fullName || t("doctorProfile1.defaultName")}
+            subtitle={profile.specialization || t("doctorProfile1.defaultSpecialization")}
           />
         </View>
 
         <View style={styles.contentContainer}>
-          {/* PROFESSIONAL SECTION */}
-
+          
           <View style={styles.card}>
             <View style={styles.sectionTitleRow}>
               <Ionicons name="ribbon-outline" size={20} color="#0F172A" />
-              <Text style={styles.sectionLabel}>Credentials</Text>
+              <Text style={styles.sectionLabel}>{t("doctorProfile1.credentials")}</Text>
             </View>
 
             {edit ? (
               <>
                 <EditableField
-                  label="Full Name"
+                  label={t("doctorProfile1.fullName")}
                   value={profile.fullName}
-                  onChange={(v: any) =>
-                    setProfile({ ...profile, fullName: v })
-                  }
+                  onChange={(v: any) => setProfile({ ...profile, fullName: v })}
                 />
 
                 <EditableField
-                  label="Qualification"
+                  label={t("doctorProfile1.qualification")}
                   value={profile.qualification}
-                  onChange={(v: any) =>
-                    setProfile({ ...profile, qualification: v })
-                  }
+                  onChange={(v: any) => setProfile({ ...profile, qualification: v })}
                 />
 
                 <EditableField
-                  label="Specialization"
+                  label={t("doctorProfile1.specialization")}
                   value={profile.specialization}
-                  onChange={(v: any) =>
-                    setProfile({ ...profile, specialization: v })
-                  }
+                  onChange={(v: any) => setProfile({ ...profile, specialization: v })}
                 />
 
                 <EditableField
-                  label="Experience (Years)"
+                  label={t("doctorProfile1.experience")}
                   value={String(profile.experienceYears || "")}
                   keyboardType="numeric"
-                  onChange={(v: any) =>
-                    setProfile({ ...profile, experienceYears: v })
-                  }
+                  onChange={(v: any) => setProfile({ ...profile, experienceYears: v })}
                 />
 
                 <EditableField
-                  label="Registration No."
+                  label={t("doctorProfile1.regNo")}
                   value={profile.registrationNumber}
-                  onChange={(v: any) =>
-                    setProfile({ ...profile, registrationNumber: v })
-                  }
+                  onChange={(v: any) => setProfile({ ...profile, registrationNumber: v })}
                 />
               </>
             ) : (
               <>
-                <InfoRow label="Full Name" value={profile.fullName || "-"} />
+                <InfoRow label={t("doctorProfile1.fullName")} value={profile.fullName || "-"} />
+                <InfoRow label={t("doctorProfile1.qualification")} value={profile.qualification || "-"} />
+                <InfoRow label={t("doctorProfile1.specialization")} value={profile.specialization || "-"} />
                 <InfoRow
-                  label="Qualification"
-                  value={profile.qualification || "-"}
-                />
-                <InfoRow
-                  label="Specialization"
-                  value={profile.specialization || "-"}
-                />
-                <InfoRow
-                  label="Experience"
+                  label={t("doctorProfile1.experience")}
                   value={
                     profile.experienceYears
-                      ? `${profile.experienceYears} Years`
+                      ? `${profile.experienceYears} ${t("doctorProfile1.years")}`
                       : "-"
                   }
                 />
                 <InfoRow
-                  label="Registration No."
-                  value={profile.registrationNumber || "Not Provided"}
+                  label={t("doctorProfile1.regNo")}
+                  value={profile.registrationNumber || t("doctorProfile1.notProvided")}
                 />
               </>
             )}
           </View>
-
-          {/* CONTACT SECTION */}
 
           <View style={styles.card}>
             <View style={styles.sectionTitleRow}>
               <Ionicons name="call-outline" size={20} color="#0F172A" />
-              <Text style={styles.sectionLabel}>Contact</Text>
+              <Text style={styles.sectionLabel}>{t("doctorProfile1.contactSection")}</Text>
             </View>
 
             {edit ? (
               <EditableField
-                label="Phone Number"
+                label={t("doctorProfile1.contact")}
                 value={profile.phone}
                 keyboardType="phone-pad"
-                onChange={(v: any) =>
-                  setProfile({ ...profile, phone: v })
-                }
+                onChange={(v: any) => setProfile({ ...profile, phone: v })}
               />
             ) : (
               <>
-                <InfoRow label="Official Email" value={profile.email || "-"} />
+                <InfoRow label={t("doctorProfile1.email")} value={profile.email || "-"} />
                 <InfoRow
-                  label="Contact Phone"
-                  value={profile.phone || "Not Provided"}
+                  label={t("doctorProfile1.contact")}
+                  value={profile.phone || t("doctorProfile1.notProvided")}
                 />
               </>
             )}
           </View>
-
-          {/* ACTION BUTTONS */}
 
           <TouchableOpacity
             style={[styles.mainBtn, edit ? styles.saveBtn : styles.editBtn]}
@@ -231,21 +199,19 @@ export default function DoctorProfile() {
               color="#FFF"
             />
             <Text style={styles.btnText}>
-              {edit ? "Save Changes" : "Edit Profile"}
+              {edit ? t("doctorProfile1.save") : t("doctorProfile1.edit")}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
             <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>Logout</Text>
+            <Text style={styles.logoutText}>{t("doctorProfile1.logout")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-/* EDITABLE INPUT COMPONENT */
 
 function EditableField({
   label,
@@ -254,13 +220,15 @@ function EditableField({
   placeholder,
   keyboardType = "default",
 }: any) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.inputGroup}>
       <Text style={styles.inputLabel}>{label}</Text>
 
       <TextInput
         value={value}
-        placeholder={placeholder || `Enter ${label}`}
+        placeholder={placeholder || `${t("doctorProfile1.enter")} ${label}`}
         onChangeText={onChange}
         keyboardType={keyboardType}
         style={styles.input}
@@ -385,4 +353,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
