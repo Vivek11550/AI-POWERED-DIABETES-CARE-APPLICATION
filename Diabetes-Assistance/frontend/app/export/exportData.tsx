@@ -1,355 +1,190 @@
-import {
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  Text,
-  ActivityIndicator,
-  Platform,
-} from "react-native";
-import { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import API from "../../src/services/api";
-
-import ProfileAvatar from "../../components/profile/ProfileAvatar";
-import ProfileTitle from "../../components/profile/ProfileTitle";
-import InfoRow from "../../components/profile/InfoRow";
-import { useAuth } from "@/src/context/AuthContext";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from "react";
 import { useLanguage } from "@/src/context/LanguageContext";
 
-export default function patientProfile() {
-  const [profile, setProfile] = useState<any>({});
-  const [edit, setEdit] = useState(false);
-  const [loading, setLoading] = useState(true);
+export default function ExportData() {
+    const router = useRouter();
+    const [exporting, setExporting] = useState<string | null>(null);
+    const { t } = useLanguage();
 
-  const { logout } = useAuth();
-  const router = useRouter();
-  const { t } = useLanguage();
+    const downloadCSV = async (endpoint: string, fileName: string) => {
+        try {
+            setExporting(fileName);
+            const token = await AsyncStorage.getItem("token");
+            const url = `${process.env.EXPO_PUBLIC_API_URL}${endpoint}`;
+            const fileUri = FileSystem.documentDirectory + fileName;
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+            const result = await FileSystem.downloadAsync(url, fileUri, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(result.uri);
+            } else {
+                Alert.alert(t("export.saved"), result.uri);
+            }
+        } catch (error) {
+            console.log("Export error:", error);
+            Alert.alert(t("export.failed"), t("export.failedMsg"));
+        } finally {
+            setExporting(null);
+        }
+    };
 
-      const token = await AsyncStorage.getItem("token");
-
-      const res = await API.get("/profile/doctor/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setProfile(res.data);
-    } catch (error) {
-      console.error("Error loading profile", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveProfile = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      await API.put("/profile/doctor", profile, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      alert(t("patientProfile1.success"));
-      setEdit(false);
-    } catch (error) {
-      alert(t("patientProfile1.error"));
-    }
-  };
-
-  if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0F172A" />
-      </View>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.root} edges={["bottom"]}>
-      <Stack.Screen
-        options={{
-          title: t("patientProfile1.header"),
-          headerShown: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: "#FFFFFF" },
-          headerTitleStyle: { color: "#0F172A", fontWeight: "700" },
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={28} color="#0F172A" />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        
-        <View style={styles.headerCard}>
-          <ProfileAvatar />
-
-          <ProfileTitle
-            name={profile.fullName || t("patientProfile1.defaultName")}
-            subtitle={profile.specialization || t("patientProfile1.defaultSpecialization")}
-          />
-        </View>
-
-        <View style={styles.contentContainer}>
-          
-          <View style={styles.card}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="ribbon-outline" size={20} color="#0F172A" />
-              <Text style={styles.sectionLabel}>{t("patientProfile1.credentials")}</Text>
-            </View>
-
-            {edit ? (
-              <>
-                <EditableField
-                  label={t("patientProfile1.fullName")}
-                  value={profile.fullName}
-                  onChange={(v: any) => setProfile({ ...profile, fullName: v })}
-                />
-
-                <EditableField
-                  label={t("patientProfile1.qualification")}
-                  value={profile.qualification}
-                  onChange={(v: any) => setProfile({ ...profile, qualification: v })}
-                />
-
-                <EditableField
-                  label={t("patientProfile1.specialization")}
-                  value={profile.specialization}
-                  onChange={(v: any) => setProfile({ ...profile, specialization: v })}
-                />
-
-                <EditableField
-                  label={t("patientProfile1.experience")}
-                  value={String(profile.experienceYears || "")}
-                  keyboardType="numeric"
-                  onChange={(v: any) => setProfile({ ...profile, experienceYears: v })}
-                />
-
-                <EditableField
-                  label={t("patientProfile1.regNo")}
-                  value={profile.registrationNumber}
-                  onChange={(v: any) => setProfile({ ...profile, registrationNumber: v })}
-                />
-              </>
-            ) : (
-              <>
-                <InfoRow label={t("patientProfile1.fullName")} value={profile.fullName || "-"} />
-                <InfoRow label={t("patientProfile1.qualification")} value={profile.qualification || "-"} />
-                <InfoRow label={t("patientProfile1.specialization")} value={profile.specialization || "-"} />
-                <InfoRow
-                  label={t("patientProfile1.experience")}
-                  value={
-                    profile.experienceYears
-                      ? `${profile.experienceYears} ${t("patientProfile1.years")}`
-                      : "-"
-                  }
-                />
-                <InfoRow
-                  label={t("patientProfile1.regNo")}
-                  value={profile.registrationNumber || t("patientProfile1.notProvided")}
-                />
-              </>
-            )}
-          </View>
-
-          <View style={styles.card}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="call-outline" size={20} color="#0F172A" />
-              <Text style={styles.sectionLabel}>{t("patientProfile1.contactSection")}</Text>
-            </View>
-
-            {edit ? (
-              <EditableField
-                label={t("patientProfile1.contact")}
-                value={profile.phone}
-                keyboardType="phone-pad"
-                onChange={(v: any) => setProfile({ ...profile, phone: v })}
-              />
-            ) : (
-              <>
-                <InfoRow label={t("patientProfile1.email")} value={profile.email || "-"} />
-                <InfoRow
-                  label={t("patientProfile1.contact")}
-                  value={profile.phone || t("patientProfile1.notProvided")}
-                />
-              </>
-            )}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.mainBtn, edit ? styles.saveBtn : styles.editBtn]}
-            onPress={edit ? saveProfile : () => setEdit(true)}
-          >
-            <Ionicons
-              name={edit ? "save-outline" : "create-outline"}
-              size={20}
-              color="#FFF"
+        <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+            <Stack.Screen
+                options={{
+                    headerShown: true,
+                    title: t("export.header"),
+                    headerShadowVisible: false,
+                    headerStyle: { backgroundColor: '#F8FAFC' },
+                    headerTitleStyle: { fontWeight: '800', color: '#0F172A' },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                            <Ionicons name="chevron-back" size={28} color="#0F172A" />
+                        </TouchableOpacity>
+                    )
+                }}
             />
-            <Text style={styles.btnText}>
-              {edit ? t("patientProfile1.save") : t("patientProfile1.edit")}
-            </Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>{t("patientProfile1.logout")}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                
+                {/* Info Card */}
+                <View style={styles.infoCard}>
+                    <View style={styles.iconCircle}>
+                        <Ionicons name="cloud-download-outline" size={32} color="#0EA5E9" />
+                    </View>
+                    <Text style={styles.infoTitle}>{t("export.title")}</Text>
+                    <Text style={styles.infoSub}>
+                        {t("export.subtitle")}
+                    </Text>
+                </View>
+
+                <Text style={styles.sectionLabel}>{t("export.available")}</Text>
+
+                {/* Export Button 1 */}
+                <TouchableOpacity
+                    onPress={() => downloadCSV("/export/patients", "patients.csv")}
+                    style={[styles.exportCard, exporting === "patients.csv" && styles.disabledCard]}
+                    disabled={exporting !== null}
+                >
+                    <View style={[styles.cardIcon, { backgroundColor: '#E0F2FE' }]}>
+                        <Ionicons name="people" size={24} color="#0EA5E9" />
+                    </View>
+                    <View style={styles.cardText}>
+                        <Text style={styles.cardTitle}>{t("export.patientRegistry")}</Text>
+                        <Text style={styles.cardSub}>{t("export.patientSub")}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+                </TouchableOpacity>
+
+                {/* Export Button 2 */}
+                <TouchableOpacity
+                    onPress={() => downloadCSV("/export/assessments", "patient_assessments.csv")}
+                    style={[styles.exportCard, exporting === "patient_assessments.csv" && styles.disabledCard]}
+                    disabled={exporting !== null}
+                >
+                    <View style={[styles.cardIcon, { backgroundColor: '#DCFCE7' }]}>
+                        <Ionicons name="analytics" size={24} color="#16A34A" />
+                    </View>
+                    <View style={styles.cardText}>
+                        <Text style={styles.cardTitle}>{t("export.assessmentLogs")}</Text>
+                        <Text style={styles.cardSub}>{t("export.assessmentSub")}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+                </TouchableOpacity>
+
+                {/* Export Button 3 - Quiz Comparison */}
+                <TouchableOpacity
+                    onPress={() =>
+                        downloadCSV("/export/quiz-comparison", "quiz_comparison.csv")
+                    }
+                    style={[
+                        styles.exportCard,
+                        exporting === "quiz_comparison.csv" && styles.disabledCard,
+                    ]}
+                    disabled={exporting !== null}
+                >
+                    <View style={[styles.cardIcon, { backgroundColor: '#FEF3C7' }]}>
+                        <Ionicons name="bar-chart" size={24} color="#F59E0B" />
+                    </View>
+
+                    <View style={styles.cardText}>
+                        <Text style={styles.cardTitle}>{t("export.quizProgress")}</Text>
+                        <Text style={styles.cardSub}>
+                            {t("export.quizSub")}
+                        </Text>
+                    </View>
+
+                    <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+                </TouchableOpacity>
+
+                <View style={styles.footerNote}>
+                    <Ionicons name="shield-checkmark" size={14} color="#94A3B8" />
+                    <Text style={styles.footerText}>
+                        {t("export.footer")}
+                    </Text>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
-
-function EditableField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  keyboardType = "default",
-}: any) {
-  const { t } = useLanguage();
-
-  return (
-    <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
-
-      <TextInput
-        value={value}
-        placeholder={placeholder || `${t("patientProfile1.enter")} ${label}`}
-        onChangeText={onChange}
-        keyboardType={keyboardType}
-        style={styles.input}
-        placeholderTextColor="#94A3B8"
-      />
-    </View>
-  );
-}
-
-/* STYLES */
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F8FAFC" },
+    container: { flex: 1, backgroundColor: "#F8FAFC" },
+    backBtn: { marginLeft: 0, padding: 5 },
+    scrollContent: { padding: 24 },
+    infoCard: {
+        backgroundColor: 'white',
+        borderRadius: 24,
+        padding: 24,
+        alignItems: 'center',
+        marginBottom: 30,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        borderWidth: 1,
+        borderColor: '#F1F5F9'
+    },
+    iconCircle: {
+        width: 70, height: 70, borderRadius: 35,
+        backgroundColor: '#F0F9FF', justifyContent: 'center', alignItems: 'center',
+        marginBottom: 16
+    },
+    infoTitle: { fontSize: 20, fontWeight: '800', color: '#0F172A' },
+    infoSub: { fontSize: 14, color: '#64748B', textAlign: 'center', marginTop: 8, lineHeight: 20 },
 
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    sectionLabel: { fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 },
 
-  backBtn: {
-    marginLeft: Platform.OS === "ios" ? 0 : 5,
-  },
+    exportCard: {
+        flexDirection: 'row',
+        backgroundColor: 'white',
+        padding: 16,
+        borderRadius: 20,
+        alignItems: 'center',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.03,
+    },
+    disabledCard: { opacity: 0.6 },
+    cardIcon: { width: 50, height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+    cardText: { flex: 1, marginLeft: 16 },
+    cardTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B' },
+    cardSub: { fontSize: 12, color: '#64748B', marginTop: 2 },
 
-  headerCard: {
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 20,
-    alignItems: "center",
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-  },
-
-  contentContainer: {
-    padding: 20,
-  },
-
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-
-  sectionTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-    paddingBottom: 10,
-  },
-
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0F172A",
-    marginLeft: 8,
-  },
-
-  inputGroup: { marginBottom: 15 },
-
-  inputLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#64748B",
-    marginBottom: 5,
-    textTransform: "uppercase",
-  },
-
-  input: {
-    backgroundColor: "#F1F5F9",
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: "#1E293B",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-
-  mainBtn: {
-    flexDirection: "row",
-    paddingVertical: 18,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
-    gap: 8,
-  },
-
-  editBtn: { backgroundColor: "#0F172A" },
-
-  saveBtn: { backgroundColor: "#10B981" },
-
-  btnText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  logoutBtn: {
-    flexDirection: "row",
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: "#FEF2F2",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#FEE2E2",
-    gap: 8,
-  },
-
-  logoutText: {
-    color: "#EF4444",
-    fontWeight: "700",
-    fontSize: 16,
-  },
+    footerNote: { flexDirection: 'row', alignItems: 'center', marginTop: 20, paddingHorizontal: 10, gap: 8 },
+    footerText: { fontSize: 11, color: '#94A3B8', flex: 1, lineHeight: 16 }
 });
